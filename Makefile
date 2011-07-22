@@ -17,7 +17,7 @@ hllr: pre_process hlex_process
 
 hlex_process:
 	@echo "---------------"
-	@echo "Building lexer for .hlx files"
+	@echo "Building lexer for .hlr files"
 	@echo "---------------"
 	hlex scripts/hllr.hlx -haxe cx-src/HLex.cx
 	
