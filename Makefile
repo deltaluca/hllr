@@ -5,6 +5,7 @@ default:
 	@echo "  To compile hllr; use target 'hllr'"
 	@echo "  To clean; use target 'clean'"
 	@echo "  To bootstrap hllr (compile hllr parser from hllr) use target 'bootstrap'"
+	@echo "  To tar hllr; use option 'tar'"
 	@echo ""
 
 
@@ -41,3 +42,9 @@ bootstrap:
 	@echo "Bootstrapping hllr!"
 	@echo "---------------"
 	hllr scripts/hllr.hlr cx-src/HLlr.cx -lalr1
+
+tar:
+	@echo "---------------"
+	@echo "Tarring hllr"
+	@echo "---------------"
+	tar cvfz hllr.tar.gz cx-src scripts Makefile
