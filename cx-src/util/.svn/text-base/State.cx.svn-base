@@ -1,0 +1,138 @@
+package util;
+
+import util.Symbol;
+import util.FA; //for CArray
+import util.Set;
+
+class Item {
+	
+	//LR(0) item
+	public var nt   : NonTerminal;
+	public var pre  : CArray(Symbol);
+	public var post : CArray(Symbol);
+	
+	//lookahead set [LA]LR(1) extension
+	public var look : Set(STerminal);
+	
+	//state it belongs to.
+	public var parent : State;
+	
+	//parent rule
+	public var rule : Rule;
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	
+	public function new() {
+		pre  = new CArray(Symbol)();
+		post = new CArray(Symbol)();
+		look = new Set(STerminal)();
+	}
+	
+	public inline function copy() {
+		var ret = new Item();
+		
+		ret.nt = nt;
+		ret.pre  = pre .copy();
+		ret.post = post.copy();
+		ret.rule = rule;
+		
+		ret.look = look.copy();
+		return ret;
+	}
+	
+	public inline function weak() { //returns a weak, MUTABLE copy.
+		var ret = new Item();
+		ret.nt = nt;
+		ret.pre  = pre;
+		ret.post = post;
+		return ret;
+	}
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	//returns the natural successor of the item (pre,p:post) -> (pre++p,post)
+	public function next() {
+		if(post.length==0) return null;
+		
+		var ret = new Item();
+		ret.rule = rule;
+		ret.pre = pre.copy();
+		ret.pre.push(post.arr[0]);
+		ret.post = new CArray(Symbol)();
+		for(i in 1...post.length) ret.post.push(post.arr[i]);
+		ret.look = look.copy();
+		ret.nt = nt;
+		return ret;
+	}
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	public inline function toString() {
+		return Std.string(nt)+"->"+Std.string(pre)+"@"+Std.string(post)+","+Std.string(look);
+	}
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	public inline function compare(x:Item, ?weak:Bool=false) {
+		var ret = if(weak) 0
+			 else if(parent==null && x.parent!=null) -1
+			 else if(parent!=null && x.parent==null)  1
+			 else if(parent!=null && x.parent!=null) parent.id - x.parent.id
+			 else 0;
+			 
+		if(ret==0) {
+			ret = nt.compare(x.nt);
+			if(ret==0) {
+				ret = pre.compare(x.pre);
+				if(ret==0) {
+					ret = post.compare(x.post);
+					if(!weak && ret==0)
+						ret = look.compare(x.look);
+				}
+			}
+		}
+		return ret;
+	}
+}
+
+///=================================================================================================
+
+class State {
+	static var nextId:Int = 0;
+	public var id:Int;
+	
+	public var items : Set(Item);
+	public var out : Array<{match:Symbol, to:State}>;
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	public function new(items:Set(Item)) {
+		id = nextId++;
+		
+		this.items = items;
+		out = new Array<{match:Symbol, to:State}>();
+	}
+	
+	public inline function toString() {
+		var ret = Std.string(id)+"\n";
+		for(i in items) ret += "\t"+Std.string(i)+"\n";
+		for(i in out)   ret += "--> "+i.match+" ("+i.to.id+")\n";
+		return ret;
+	}
+	
+	//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	//maps state to state, only used in LALR(1) construction, so weak comparison used.
+	public inline function compare(x:State) {
+		var ret = 0;
+		var t = x.items.iterator();
+		for(i in items) {
+			if(!t.hasNext()) { ret = 1; break; }
+			var j = t.next();
+			ret = i.compare(j,true); //weak comparison.
+			if(ret!=0) break;
+		}
+		if(ret==0 && t.hasNext()) ret = -1;
+		return ret;
+	}
+}

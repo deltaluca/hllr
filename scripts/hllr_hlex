@@ -1,0 +1,11 @@
+public static function stream(x:Array<Token>) {
+	Terminal.initcons();
+	var ret = new Array<Terminal>();
+	for(i in x) {
+		ret.unshift(Terminal.cons[i.id+1].inst(i.data));
+		i.free();
+	}
+
+	ret.unshift(Terminal.DOLLAR);
+	return ret;
+}

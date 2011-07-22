@@ -1,0 +1,6 @@
+To compile, requires caxe preprocessor, and scx caxe library (another github repo) as well as hlex
+
+them simply invoke the makefile, making sure that $SCX env-var is set up to point to scx root.
+as well as $HLEX_ROOT set up to point to installation directory for hlex.
+
+to execute hlex, you must have env-var $HLLR_ROOT set up to point to the installation directory of hllr containing the bin and scripts folders.

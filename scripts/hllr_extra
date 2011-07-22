@@ -1,0 +1,7 @@
+enum Action {
+	aE;
+	aS(n:Int);
+	aR(r:Int);
+	aA;
+	aG(n:Int);
+}

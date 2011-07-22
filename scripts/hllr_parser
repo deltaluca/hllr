@@ -1,0 +1,43 @@
+var stack = new Array<Int>();
+var ret = new Array<Dynamic>();
+
+var cur = input.pop();
+var cstate = entry_state;
+
+while(cur!=null) {
+	var action = actions[cstate][cur.id];
+	//trace(cstate+" "+Std.string(stack)+" # "+Std.string(cur)+" "+Std.string(action)+"  #  "+Std.string(input)+"   ~   "+Std.string(ret));
+	
+	switch(action) {
+		case aS(id):
+			ret.push(cur);
+			stack.push(cstate);
+			cstate = id;
+			cur = input.pop();
+		case aR(id):
+			var c = rules[id];
+			c.cb(ret);
+			
+			if(c.cnt>0) {
+				for(i in 0...c.cnt-1) stack.pop();
+				cstate = stack[stack.length-1];
+			}else stack.push(cstate);
+			
+			var goto = actions[cstate][c.sym];
+			switch(goto) { case aG(id): cstate = id; default: }
+		case aA:
+			break;
+		case aE:
+			if(cur != Terminal.ERROR) {
+				//if(input.length==0) input.push(Terminal.DOLLAR);
+				input.push(cur = Terminal.ERROR);
+			} else {
+				ret.pop();
+				if(stack.length==0) break;
+				cstate = stack.pop();
+			}
+		default:
+	}
+}
+
+return if(ret.length==0) null else ret[0];

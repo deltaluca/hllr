@@ -1,0 +1,65 @@
+package util;
+
+class Symbol {
+	static var nextId:Int = 0;
+	public var id:Int;
+	public var meta:String;
+	
+	public var isTerminal:Bool;
+	public inline function compare(x:Symbol) return id-x.id
+	
+	public function toString() return ""
+}
+
+//--------------------------------------------------------------------------------------------------
+
+class STerminal extends Symbol {
+	public var data:Dynamic;
+	public var name:String;
+	
+	public function new(?data:Dynamic,?meta:String="",?name:String="") {
+		isTerminal = true;
+		this.data = data;
+		this.meta = meta;
+		this.name = name;
+		id = Symbol.nextId++;
+	}
+	
+	public static var dollar = new STerminal(null,"EOF","DOLLAR");
+	public static var error  = new STerminal(null,"err","ERROR");
+	
+	public override function toString() return if(this==dollar) "$" else name
+}
+
+//--------------------------------------------------------------------------------------------------
+
+class Rule {
+	static var nextId = 0;
+	public var id:Int;
+	
+	public var meta:String;
+	public var nt:NonTerminal;
+	public var attr:String;
+	
+	public var match:Array<Symbol>;
+	public function new(x:Array<Symbol>, ?meta:String="") {
+		id = nextId++;
+		match = x;
+		this.meta = meta;
+	}
+	
+	public inline function toString() return match.join(" ")
+}
+
+class NonTerminal extends Symbol {
+	public var rules : Array<Rule>;
+	
+	public function new(?meta:String="") {
+		isTerminal = false;
+		this.meta = meta;
+		id = Symbol.nextId++;
+		rules = new Array<Rule>();
+	}
+	
+	public override function toString() return meta
+}

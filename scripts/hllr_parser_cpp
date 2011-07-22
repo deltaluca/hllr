@@ -1,0 +1,62 @@
+var tokens :Deque<Int>     = Thread.readMessage(true);
+var data   :Deque<Dynamic> = Thread.readMessage(true);
+var results:Deque<Dynamic> = Thread.readMessage(true);
+
+var stack = new Array<Int>();
+var ret = new Array<Dynamic>();
+
+var cur = tokens.pop(true);
+var cur_data = (cur&DATA_MASK!=0) ? { cur&=ID_MASK; data.pop(true); } : null;
+
+var cstate = entry_state;
+while(cur!=CLOSE) {
+	var action = actions[cstate][cur->id+2];
+	
+	switch(action & 3) {
+		case 0: //error
+			//skip to end of file, or end of process token.
+			while(true) {
+				cur = tokens.pop(true);
+				cur_data = (cur&DATA_MASK!=0) ? { cur&=ID_MASK; data.pop(true); } : null;
+				if(cur==EOFt) break;
+			}
+				
+			ret = [];
+			results.add(null);
+			
+			stack = [];
+			cstate = entry_state;
+			cur = tokens.pop(true);
+			cur_data = (cur&DATA_MASK!=0) ? { cur&=ID_MASK; data.pop(true); } : null;
+			
+		case 1: //accept
+			results.add(ret[0]);
+			ret = [];
+			
+			stack = [];
+			cstate = entry_state;
+			cur = tokens.pop(true);
+			cur_data = (cur&DATA_MASK!=0) ? { cur&=ID_MASK; data.pop(true); } : null;
+			
+		case 2: //shift(id)
+			ret.push(cur_data);
+			stack.push(cstate);
+			cstate = action >>> 2;
+
+			cur = tokens.pop(true);
+			cur_data = (cur&DATA_MASK!=0) ? { cur&=ID_MASK; data.pop(true); } : null;
+			
+		case 3: //reduce(id)
+			var c = rules[action>>>2];
+			c.cb(ret);
+			
+			if (c.cnt > 0) {
+				for (i in 0...c.cnt - 1) stack.pop();
+				cstate = stack[stack.length - 1];
+			}else stack.push(cstate);
+			
+			cstate = actions[cstate][c.sym];
+	}
+}
+
+results.push(null);

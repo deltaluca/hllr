@@ -1,0 +1,37 @@
+%token IDENT TOKEN HAXE COLON BAR SEMI STSYM PERC
+
+%{
+	enum HLR {
+		h_tdecl ( tokens : Array<String> );
+		h_extra ( haxe : String );
+		h_entry ( entry : String );
+		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String } > );
+	}
+	
+%}
+
+%entry prog
+
+%prog	: state			%{ [%0];					  %}
+		| prog state	%{ var x = %0; x.push(%1); x; %}
+		;
+	
+%state	: TOKEN idents					%{ h_tdecl(%1);			%}
+		| STSYM IDENT					%{ h_entry(%1.data);	%}
+		| HAXE							%{ h_extra(%0.data);	%}
+		| PERC IDENT COLON alts SEMI	%{ h_rules(%1.data,%3);	%}
+		;
+		
+%idents	: IDENT			%{ [%0.data];					   %}
+		| idents IDENT	%{ var x = %0; x.push(%1.data); x; %}
+		;
+			
+%alts	: alt			%{ [%0];					  %}
+		| alts BAR alt	%{ var x = %0; x.push(%2); x; %}
+		;
+		
+%alt	: idents		%{ { rule : %0, haxe : null 	}; %}
+		| idents HAXE	%{ { rule : %0, haxe : %1.data	}; %}
+		| HAXE          %{ { rule : [], haxe : %0.data  }; %}
+		|               %{ { rule : [], haxe : null     }; %}
+		;

@@ -1,0 +1,742 @@
+package;
+
+import neko.io.File;
+import neko.Sys;
+import neko.Lib;
+
+import scx.Set;
+import util.Symbol;
+import util.State;
+
+import HLex;
+import HLlr;
+
+import scx.Textual;
+
+class Main {
+	static function main() {
+		
+		var args = Sys.args();
+		if(args.length < 2 && args[0]!="--help") {
+		    Lib.println("For help use --help option");
+		    Sys.exit(1);
+		    return;
+		}
+		
+		if(args[0]=="--help") {
+		
+		    Lib.println("Usage: hllr descriptor.hlr output [options]");
+		    Lib.println("Options:");
+		    Lib.println("\thllr descriptor.hlr output.hx [-package name] [-hlex hlex_qname] [-hlexcpp]");
+		    Lib.println("\t\tGenerates a pure haXe parser in given package");
+		    Lib.println("\t\tIf -hlex option is present, parser will include the given qualified class name to the lexer");
+		    Lib.println("\t\t  As well as including some interoperability utilities between them");
+		    Lib.println("\t\tIf -hlexcpp is present, then code will be generated for interoperability with a -cpp compiled hlex lexer");
+		    Lib.println("");
+		    Lib.println("\thllr descriptor.hlr output_name -c++ -hlex hlexname");
+		    Lib.println("\t\tGenerates a pure c++ parser to be used in conjunction with a pure -c++ compiled hlex lexer");
+		    Lib.println("\t\t-hlex option is not optional and must equal the output_name used in hlex build");
+		    Lib.println("\t\tWill create output_name.hpp and output_name.cpp and to compile (like with hlex) you must include caxe_util from caxe repo");
+		    Lib.println("");
+		    Lib.println("\t-lalr1");
+		    Lib.println("\t\tValid for all compilation modes, and specifies that an LALR(1) parse table will be generated rather than a large (more general) LR(1) parse table");
+			Lib.println("");
+			Lib.println("\tFor syntax of .hlr file view hlr_readme");
+			
+			Sys.exit(0);
+			return;
+		}
+		
+		var lalr1 = false;
+		var packname = "";
+		var hlex = null;
+		var cpp = false;
+		var purecpp = false;
+		
+		var iarg = 2;
+		while(iarg < args.length) {
+			var flag = args[iarg++];
+			if(flag=="-package" && iarg<args.length) { packname = args[iarg++]; continue; }
+			if(flag=="-hlex" && iarg<args.length) { hlex = args[iarg++]; continue; }
+			if(flag=="-lalr1") { lalr1 = true; continue; }
+			if(flag=="-hlexcpp") { cpp = true; continue; }
+			if(flag=="-c++") { purecpp = true; continue; }
+			
+			Lib.println("Unrecognised flag "+flag);
+		}
+		
+		if(purecpp && hlex==null) {
+			Lib.println("ERROR, C++ requires -HLEX");
+			Sys.exit(1);
+		}
+		
+		//------------------------------------------------------------------------------------------
+		
+		Lib.println(" >> lexing descriptor file");
+		var tokens = HLex.lexify(File.getContent(args[0]));
+		
+		Lib.println(" >> parsing descriptor file");
+		
+		var xterminals = new Array<Terminal>();
+		for(i in tokens) {
+			var p = switch(i.id) {
+				case Token.t_ident: Terminal.IDENT.inst(i.data);
+				case Token.t_token: Terminal.TOKEN;
+				case Token.t_haxe:  Terminal.HAXE.inst(i.data);
+				case Token.t_colon: Terminal.COLON;
+				case Token.t_bar:   Terminal.BAR;
+				case Token.t_semi:  Terminal.SEMI;
+				case Token.t_stsym: Terminal.STSYM;
+				case Token.t_error: Terminal.ERROR;
+				case Token.t_perc:  Terminal.PERC;
+			}
+			xterminals.unshift(p);
+		}
+		xterminals.unshift(Terminal.DOLLAR);
+		
+		var hlr:Array<HLR> = cast HLlr.parse(xterminals);
+		if(hlr==null) Sys.exit(1);
+		
+		var terminals    = new StringMap(STerminal)();
+		var nonterminals = new StringMap(NonTerminal)();
+		
+		terminals.insert("DOLLAR",STerminal.dollar);
+		terminals.insert("ERROR", STerminal.error);
+		
+		var getsym = function(x:String):Symbol {
+			var get = terminals.get(x);
+			if(get!=null) return get;
+			else {
+				var get = nonterminals.get(x);
+				if(get!=null) return get;
+				else {
+					nonterminals.insert(x, get = new NonTerminal(x));
+					return get;
+				}
+			}
+		};
+		
+		var extra:String = "";
+		var start_rule:Symbol = null;
+		
+		for(S in hlr) {
+			switch(S) {
+				case h_tdecl(tokens):
+					for(x in tokens) {
+						if(nonterminals.has(x)) {
+							Lib.println("Warning: Token name "+x+" is a non-terminal!");
+							continue;
+						} else if(!terminals.insert(x, new STerminal(null,x,x))) {
+							Lib.println("Warning: Token name "+x+" already exists!");
+							continue;
+						}
+					}
+				case h_extra(haxe):
+					extra += haxe;
+				case h_entry(entry):
+					start_rule = getsym(entry);
+				case h_rules(nt,rules):
+					var sym = getsym(nt);
+					if(sym.isTerminal) {
+						Lib.println("ERROR: NonTerminal "+nt+" is a terminal!");
+						continue;
+					}
+					
+					var snt:NonTerminal = cast sym;
+					
+					for(i in rules) {
+						var srule = new Array<Symbol>();
+						for(x in i.rule) srule.push(getsym(x));
+						var rule = new Rule(srule,nt + " -> "+Std.string(srule));
+						rule.attr = i.haxe;
+						
+						snt.rules.push(rule);
+					}
+			}
+		}
+		
+		if(start_rule==null) {
+			Lib.println("Error: No parser entry specified");
+			Sys.exit(1);
+		}
+		
+		var start_symbol = new NonTerminal("%entry");
+		start_symbol.rules.push(new Rule(cast [start_rule]));
+	
+		//------------------------------------------------------------------------------------------
+		//compute first sets.
+		
+		Lib.println(" >> Computing first sets");
+		
+		//maps a symbol to it's first set.
+		var first_sets = new Map(Symbol,Set(STerminal))();
+		
+		//insert trivial first set of terminals.
+		for(i in terminals) first_sets.insert(cast i.data, new Set(STerminal)([i.data]));
+		
+		//compute the first set of a symbol.
+		var first = null;
+		first = function(cur:Symbol) {
+			var has = first_sets.get(cast cur);
+			if(has!=null) return has;
+			
+			var set = new Set(STerminal)();
+			first_sets.insert(cur, set);
+			
+			//as terminals are handled first, can guarantee this cast will never fail.
+			var nt:NonTerminal = cast cur;
+			for(rule in nt.rules) {
+				if(rule.match.length==0) continue;
+				set.merge(first(rule.match[0]));
+			}
+			return set;
+		};
+		
+		//calculate first set of the nonterminals.
+		for(i in nonterminals) first(i.data);
+		
+		//------------------------------------------------------------------------------------------
+		//compute [LA]LR(1) DFA
+		
+		Lib.println(" >> building LR(1) DFA");
+		
+		//closure computation
+		var closure = function(x:Set(Item)) {
+			var weakmap = new Map(Item,Item)(); //return items
+			var strongmap = new Set(Item)(); //processed items to allow propogation
+			
+			var stack = new Array<Item>();
+			for(y in x) stack.push(y);
+			
+			while(stack.length>0) {
+				var cur = stack.pop();
+				if(!strongmap.insert(cur)) continue;
+				
+				var weakkey = cur.weak();
+				var get = weakmap.get(weakkey);
+				
+				//special case for terminal
+				if(cur.post.length==0 || cur.post.arr[0].isTerminal) {
+					if(get!=null) get.look.merge(cur.look);
+					else weakmap.insert(weakkey, cur);
+					continue;
+				}
+				
+				var fst:NonTerminal = cast cur.post.arr[0];
+				var look = if(cur.post.length>1) first_sets.get(cur.post.arr[1]);
+				else cur.look;
+				
+				if(get!=null) get.look.merge(cur.look);
+				else weakmap.insert(weakkey, cur);
+				
+				//aggregate items of the form B -> @ D
+				for(i in fst.rules) {
+					var ci = new Item();
+					ci.rule = i;
+					for(x in i.match) ci.post.arr.push(x);
+					ci.look = look.copy();
+					ci.nt = fst;
+					stack.push(ci);
+				}
+			}
+			
+			var ret = new Set(Item)();
+			for(i in weakmap) ret.insert(i.data);
+			return ret;
+		};
+		
+		//state computation
+		var stmap = new Map(Set(Item),State)();		
+		
+		var procstate = null;
+		procstate = function(ix:Set(Item)) {
+			var estate = stmap.get(ix);
+			//if state already exists, return it.
+			if(estate!=null) return estate;
+			
+			var state = new State(ix);
+			stmap.insert(ix, state);
+			
+			var next = new Map(Symbol,Set(Item))();
+			for(x in ix) {
+				var nxt = x.next();
+				if(nxt!=null) {
+					var get = next.get(x.post.arr[0]);
+					if(get==null) next.insert(x.post.arr[0], get=new Set(Item)());
+					get.insert(nxt);
+				}
+			}
+			
+			for(x in next)
+				state.out.push( { match : x.key, to : procstate(closure(x.data)) } );
+				
+			return state;
+		}
+		
+		var entry_item = new Item();
+		entry_item.post.arr.push(start_symbol.rules[0].match[0]);
+		entry_item.look.insert(STerminal.dollar);
+		entry_item.rule = start_symbol.rules[0];
+		entry_item.nt = start_symbol;
+		
+		var entry_state = procstate(closure(new Set(Item)([entry_item])));
+		
+		//------------------------------------------------------------------------------------------
+		//if LALR(1) compress DFA
+		
+		var states = new IntMap(State)();
+		if(lalr1) {
+			Lib.println(" >> Compressing to LALR(1)");
+			
+			var statemap = new Map(State,State)();
+			for(si in stmap) {
+				var i = si.data;
+				
+				var get = statemap.get(i);
+				if (get==null) statemap.insert(i, get = i);
+				else {
+					if(get.id > i.id) get.id = i.id;
+					
+					var ti = get.items.iterator();
+					for(x in i.items) {
+						var nxt = ti.next();
+						if(nxt==null) { trace("WTF"); trace(get); trace(i); break; }
+						nxt.look.merge(x.look);
+						x.parent = get;
+					}
+				}
+			}
+			
+			var sind = 0;
+			for(i in statemap) {
+				var s = i.data;
+				//reassign state id's
+				s.id = sind++;
+				states.insert(s.id,s);
+				for(x in s.out)
+					x.to = statemap.get(x.to);
+			}
+		}else
+			for(s in stmap) states.insert(s.data.id,s.data);
+			
+		//------------------------------------------------------------------------------------------
+		//convert to table
+		
+		Lib.println(" >> Building transition table");
+		
+		var rules = new IntMap(Rule)();
+		for(i in nonterminals) {
+			for(r in i.data.rules) {
+				rules.insert(r.id,r);
+				r.nt = i.data;
+			}
+		}
+			
+		var syms = new IntMap(Symbol)();
+		var symcnt = 0;
+		for(i in terminals) { syms.insert(i.data.id, i.data); symcnt++; }
+		for(i in nonterminals) { syms.insert(i.data.id, i.data); symcnt++; }
+		
+		var errs = false;
+		var actions = new Array<Array<SAction>>();
+		//state -> symbol -> action
+		for(it in states) {
+			var i = it.data;
+			
+			var cstate = new Array<SAction>();
+			actions.push(cstate);
+			for(j in 0...symcnt) cstate.push(aE);
+			
+			var printitem = function (x:Item) {
+				var ret = "";
+				
+				ret += x.nt.meta + " : ";
+				for(i in x.pre.arr) ret += i.meta+" ";
+				ret += ". ";
+				for(i in x.post.arr) ret += i.meta+" ";
+				
+				return ret;
+			};
+			
+			for(x in i.items) {
+				if(x.post.length==0) {
+					for(r in x.look) {
+						switch(cstate[r.id]) {
+							case aS(st):
+								neko.Lib.println("Warning: Shift-Reduce conflict on "+syms.get(r.id).meta);
+								neko.Lib.println("    "+rules.get(x.rule.id).meta);
+								neko.Lib.println("Shift takes precedence!");
+								neko.Lib.println("");
+							case aR(st):
+								neko.Lib.println("Warning: Reduce-Reduce conflict on "+syms.get(r.id).meta);
+								if(st<x.rule.id) {
+								    neko.Lib.println("    "+rules.get(st).meta);
+								    neko.Lib.println("    "+rules.get(x.rule.id).meta);
+								}else {
+								    neko.Lib.println("    "+rules.get(x.rule.id).meta);
+								    neko.Lib.println("    "+rules.get(st).meta);
+								}
+								neko.Lib.println("First rule takes precedence!");
+								neko.Lib.println("");
+								if(st>x.rule.id) cstate[r.id] = aR(x.rule.id);
+							default:
+								cstate[r.id] = if(x.nt==start_symbol) aA else aR(x.rule.id);
+						}
+					}
+				}
+			}
+			for(x in i.out) {
+				var id = x.match.id;
+				switch(cstate[id]) {
+					case aR(st):
+						neko.Lib.println("Warning: Shift-Reduce conflict on "+syms.get(id).meta);
+						neko.Lib.println("    "+rules.get(st).meta);
+						for(i in x.to.items) {
+							if(i.pre.length>0 && i.pre.arr[i.pre.length-1]==x.match)
+								neko.Lib.println("    "+printitem(i));
+						}
+						neko.Lib.println("Shift takes precedence!");
+						neko.Lib.println("");
+					default:
+				}
+				cstate[id] = if(x.match.isTerminal) aS(x.to.id) else aG(x.to.id);
+			}
+		}
+		
+		if(errs)
+			neko.Sys.exit(1);
+		
+		//-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+		
+		Lib.println(" >> outputting to file");
+		
+		var procattr = function(attr:String) {
+			//replace %N with hllr__N in attr
+			var esc = false;
+			var ret = new StringBuf();
+			var i = 0;
+			while(i<attr.length) {
+				var c = attr.charCodeAt(i++);
+				if(c==92 && !esc) { esc = true; ret.addChar(92); }
+				else if(esc) { esc = false; ret.addChar(c); }
+				else if(c==37) {
+					var dcnt = 0;
+					for(j in i...attr.length) {
+						var c = attr.charAt(j);
+						if(c>='0' && c<='9') dcnt++;
+						else break;
+					}
+					
+					ret.addSub("hllr__",0,6);
+					ret.addSub(attr,i,dcnt);
+					
+					i += dcnt;
+				}else ret.addChar(c);
+			}
+			
+			return ret.toString();
+		};
+		
+		var epath = neko.Sys.getEnv("HLLR_ROOT");
+		if(epath==null || epath.length==0) {
+		    Lib.println("WARNING: HLLR_ROOT NOT DEFINED");
+		    epath = "";
+		}
+		
+		if(purecpp) {
+			var out = "";
+			out += "#pragma once\n";
+			out += "#include <string>\n";
+			out += "#include <iostream>\n";
+			out += "#include <caxe_util.hpp>\n";
+			out += "#include <"+hlex+".hpp>\n";
+			
+			out += "struct ParserResult {\n";
+			out += "	std::string file_name;\n";
+			out += "	Dynamic data;\n";
+			out += "	ParserResult();\n";
+			out += "	ParserResult(std::string& file_name, const Dynamic& data);\n";
+			out += "};\n";
+			out += "std::ostream& operator<<(std::ostream&, const ParserResult&);\n";
+			
+			out += "class Parser : public Thread {\n";
+			out += "	ref<tsDeque<ptr<TOKEN> > > tokens;\n";
+			out += "	ref<tsDeque<ParserResult> > results;\n";
+			out += "	int run();\n";
+			
+			out += "public:\n";
+			out += "	Parser();\n";
+			out += "	void init(tsDeque<ptr<TOKEN> >& tokens, tsDeque<ParserResult>& results);\n";
+			out += "};\n";
+			
+			var file = File.write(args[1]+".hpp", false);
+			file.writeString(out);
+			file.flush();
+			file.close();
+			
+			var out = "";
+			out += "#include <"+args[1]+".hpp>\n";
+			out += "#include <vector>\n";
+			
+			out += extra+"\n";
+			
+			out += "std::ostream& operator<<(std::ostream& out, const ParserResult& x){\n";
+			out += "	return out << \"\\\"\" << x.file_name << \"\\\"->\" << x.data;\n";
+			out += "}\n";
+			
+			$(mixin arrstr(x,f) {
+				var ret = "{";
+				var fst = true;
+				for(i in x) {
+					if(!fst) ret += ",";
+					fst = false;
+					ret += f(i);
+				}
+				ret += "}";
+				ret;
+			});
+			
+			out += "static const int actions["+(actions.length)+"]["+(actions[0].length)+"] = \n";
+			out += arrstr(actions,function(i:Array<SAction>) {
+				return arrstr(i, function (j:SAction) {
+					return switch(j) {
+						case aE: "0";
+						case aS(id): Std.string(2|(id<<2));
+						case aR(id): Std.string(3|(id<<2));
+						case aG(id): Std.string(id);
+						case aA: "1";
+					};
+				});
+			});
+			out += ";\n";
+			
+			out += "struct RULE {\n";
+			out += "	void (*cb) (std::vector<Dynamic>&);\n";
+			out += "	int sym;\n";
+			out += "	int cnt;\n";
+			out += "};\n";
+			
+		var procattr = function(attr:String,match:Array<Symbol>) {
+			//replace %N with hllr__N in attr
+			var esc = false;
+			var ret = new StringBuf();
+			var i = 0;
+			while(i<attr.length) {
+				var c = attr.charCodeAt(i++);
+				if(c==92 && !esc) { esc = true; ret.addChar(92); }
+				else if(esc) { esc = false; ret.addChar(c); }
+				else if(c==37) {
+					var dcnt = 0;
+					for(j in i...attr.length) {
+						var c = attr.charAt(j);
+						if(c>='0' && c<='9') dcnt++;
+						else break;
+					}
+					
+					var sym = attr.substr(i,dcnt);
+					
+					if(match[Std.parseInt(sym)].isTerminal)
+						ret.add("(ptr<TOKEN>(hllr__"+sym+")->data)");
+					else
+						ret.add("hllr__"+sym);
+					
+					i += dcnt;
+				}else ret.addChar(c);
+			}
+			
+			return ret.toString();
+		};
+			
+			
+			for(x in rules) {
+				out += "void R"+Std.string(x.key)+"(std::vector<Dynamic>& __ret) {\n";
+				if(x.data.attr==null) {
+				out += "	//default\n";
+				for(i in 0...x.data.match.length)
+				out += "	__ret.pop_back();\n";
+				out += "	__ret.push_back(NULL);\n";
+				}else {
+				out += "	//arguments\n";
+				for(i in 0...x.data.match.length)
+				out += "	Dynamic hllr__"+Std.string(x.data.match.length-i-1)+" = __ret.back(); __ret.pop_back();\n";
+				out += "	Dynamic retval;\n";
+				out += procattr(x.data.attr,x.data.match)+"\n";
+				out += "	__ret.push_back(retval);\n";
+				}
+				out += "}\n";
+			}
+			
+			out += "static const RULE rules[] = ";
+			out += arrstr(rules,function(x:{key:Int,data:Rule}) {
+				return "{R"+Std.string(x.key)+", "+Std.string(x.data.nt.id)+", "+Std.string(x.data.match.length)+"}";
+			});
+			out += ";\n";
+			
+			out += "static const int entry_state = "+(entry_state.id)+";\n";
+			
+			out += "ParserResult::ParserResult() {}\n";
+			out += "ParserResult::ParserResult(std::string& file_name, const Dynamic& data) {\n";
+			out += "	this->file_name = file_name;\n";
+			out += "	this->data = data;\n";
+			out += "}\n";
+			
+			out += "int Parser::run() {\n";
+			out += File.getContent(epath+"/scripts/hllr_parser_c++");
+			out += "	return 0;\n";
+			out += "}\n";
+			
+			out += "Parser::Parser() {}\n";
+			out += "void Parser::init(tsDeque<ptr<TOKEN> >& tokens, tsDeque<ParserResult>& results) {\n";
+			out += "	this->tokens = ref<tsDeque<ptr<TOKEN> > > (tokens);\n";
+			out += "	this->results = ref<tsDeque<ParserResult> >(results);\n";
+			out += "}\n";
+			
+			var file = File.write(args[1]+".cpp", false);
+			file.writeString(out);
+			file.flush();
+			file.close();
+			
+		}else {
+		
+			var out = "package "+packname+";\n";
+			out += "\n";
+			if(hlex!=null)
+				out += "import "+hlex+";\n";
+				
+			out += extra;
+			if(cpp) {
+				out += "import neko.vm.Deque;\n";
+				out += "import neko.vm.Thread;\n";
+			}
+			
+			out += "\n";
+			out += "class HLlr {\n";
+			out += "	public static var errors:Array<String>;\n";
+			out += "\n";
+			if(cpp) {
+			out += "	public static inline var DATA_MASK = 0x40000000;\n";
+			out += "	public static inline var EOFt = 0;\n";
+			out += "	public static inline var CLOSE = 0x3fffffff;\n";
+			out += "	public static inline var ID_MASK = CLOSE;\n";
+			out += "	public static function parse():Void {\n";
+			out += "		var actions = ";
+			out += Textual.array_string(cast actions, function(i:Array<SAction>) {
+				return Textual.array_string(i, function(j:SAction) {
+					return switch(j) {
+						case aE: "0";
+						case aS(id): Std.string(2|(id<<2));
+						case aR(id): Std.string(3|(id<<2));
+						case aG(id): Std.string(id);
+						case aA: "1";
+					};
+				});
+			});
+			out += ";\n";
+			} else {
+			out += "	public static function parse(input:Array<Terminal>):Dynamic {\n";
+			out += "		errors = new Array<String>();\n";
+			out += "\n";
+			out += "		var _ = aE;\n";
+			out += "        var actions = ";
+			out += Textual.array_string(cast actions, function(i:Array<SAction>) {
+				return Textual.array_string(i, function(j:SAction) {
+					return switch(j) {
+						case aE: "_";
+						case aS(id): "aS("+Std.string(id)+")";
+						case aR(id): "aR("+Std.string(id)+")";
+						case aG(id): "aG("+Std.string(id)+")";
+						case aA: "aA";
+					};
+				});
+			});
+			out += ";\n";
+			}
+			out += "\n";
+			
+			//------------------------------------------------------------------------------------------
+			// 1 : arg  := %[0-9]+
+			// 0 : else := (\\%(.|[\n\r])*|[^%])+
+			
+			out += "        var rules = ";
+			out += Textual.array_string(cast rules, function(x:{key:Int, data:Rule}) {
+				return "{ cb : R"+Std.string(x.key)+", sym : "+Std.string(x.data.nt.id)+" , cnt : "+Std.string(x.data.match.length)+ " }";
+			});
+			out += ";\n";
+			
+			out += "\n";
+			out += "		var entry_state = "+Std.string(entry_state.id)+";\n";
+			out += "\n";
+			
+			out += File.getContent(epath+"/scripts/hllr_parser"+(cpp?"_cpp":""));
+			out += "	}\n";
+			
+			out += "\n";
+			for(x in rules) {
+			out += "	private static inline function R"+Std.string(x.key)+"(ret:Array<Dynamic>) {\n";
+				if(x.data.attr == null) {
+			out += "		//default action.\n";
+					for(i in 0...x.data.match.length)
+			out += "		ret.pop();\n";
+			out += "		ret.push(null);\n";
+				}else {
+			out += "		//assign arguments.\n";
+					for(i in 0...x.data.match.length)
+			out += "		var hllr__"+Std.string(x.data.match.length-i-1)+" = ret.pop();\n";
+			out += "		ret.push(({"+procattr(x.data.attr)+"}));\n";
+				}
+			out += "	}\n";
+			}
+			
+			if(hlex!=null && !cpp)  out += File.getContent(epath+"/scripts/hllr_hlex");
+			
+			out += "}\n";
+			out += "\n";
+			
+			if(!cpp) {
+				out += "class Terminal {\n";
+				for(i in terminals)
+				out += "	public static var "+i.data.name+" = new Terminal("+i.data.id+");\n";
+				out += "\n";
+				out += "	public var id:Int;\n";
+				out += "	public var data:Dynamic;\n";
+				out += "\n";
+				out += "	public static var cons:Array<Terminal> = null;";
+				out += "	public static inline function initcons() {\n";
+
+				out += "        if(cons==null) cons = ";
+				var nterminals = new IntMap(STerminal)();
+				for(i in terminals) nterminals.insert(i.data.id,i.data);
+				out += Textual.array_string(cast nterminals, function(x:{data:STerminal}) {
+					return x.data.name;
+				});
+				out += ";\n";
+				out += "	}\n";
+				out += "\n";
+				out += "	public function new(id:Int) {\n";
+				out += "		this.id = id;\n";
+				out += "	}\n";
+				out += "	public function inst(x:Dynamic) {\n";
+				out += "		var ret = new Terminal(id);\n";
+				out += "		ret.data = x;\n";
+				out += "		return ret;\n";
+				out += "	}\n";
+				out += "}\n";
+				
+				out += "\n";
+				out += File.getContent(epath+"/scripts/hllr_extra");
+			}
+			var file = File.write(args[1], false);
+			file.writeString(out);
+			file.flush();
+			file.close();
+		}
+	}
+}
+
+enum SAction {
+	aE;
+	aS(n:Int);
+	aR(r:Int);
+	aA;
+	aG(n:Int);
+}

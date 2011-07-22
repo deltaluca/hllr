@@ -1,0 +1,63 @@
+std::vector<int> stack;
+std::vector<Dynamic> ret;
+
+ptr<TOKEN> cur = tokens->pop();
+if(cur->id==-3) return 0;
+
+std::string fname = (std::string) cur->data;
+
+cur = tokens->pop();
+int cstate = entry_state;
+while(cur->id!=-3) {
+	int action = actions[cstate][cur->id+2];
+	switch(action&3) {
+		case 0: //error
+			results->push(ParserResult(fname,Dynamic::null));
+			
+			//skip to end of file, or end of process token.
+			while(cur->id>=-1) cur = tokens->pop();
+			ret.clear();
+			
+			stack.clear();
+			cstate = entry_state;
+			cur = tokens->pop();
+			if(cur->id!=-3) {
+				fname = *(ptr<std::string>(cur->data));
+				cur = tokens->pop();
+			}
+
+			break;
+		case 1: //accept
+			results->push(ParserResult(fname,ret.front()));
+
+			ret.clear();
+			
+			stack.clear();
+			cstate = entry_state;
+			cur = tokens->pop();
+			if(cur->id!=-3) {
+				fname = *(ptr<std::string>(cur->data));
+				cur = tokens->pop();
+			}
+			
+			break;
+		case 2: //shift
+			ret.push_back(cur);
+			stack.push_back(cstate);
+			cstate = action >> 2;
+
+			cur = tokens->pop();
+		
+			break;
+		case 3: //reduce
+			const RULE& c = rules[action>>2];
+			(*(c.cb))(ret);
+			
+			if (c.cnt > 0) {
+				for(int i = 0; i<(c.cnt-1); i++) stack.pop_back();
+				cstate = stack.back();
+			}else stack.push_back(cstate);
+			
+			cstate = actions[cstate][c.sym];
+	}
+}
