@@ -4,7 +4,7 @@ std::vector<Dynamic> ret;
 ptr<TOKEN> cur = tokens->pop();
 if(cur->id==-3) return 0;
 
-std::string fname = (std::string) cur->data;
+std::string fname = cur->data.cast<std::string>();
 
 cur = tokens->pop();
 int cstate = entry_state;
