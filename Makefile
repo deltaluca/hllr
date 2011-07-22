@@ -13,6 +13,7 @@ hllr: pre_process hlex_process
 	@echo "---------------"
 	@echo "Compiling hllr!"
 	@echo "---------------"
+	mkdir -p bin
 	haxe -cp src -neko bin/hllr.n -main Main
 	nekotools boot bin/hllr.n
 
