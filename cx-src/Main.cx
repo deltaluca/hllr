@@ -462,7 +462,7 @@ class Main {
 			out += "class Parser : public Thread {\n";
 			out += "	ref<tsDeque<ptr<TOKEN> > > tokens;\n";
 			out += "	ref<tsDeque<ParserResult> > results;\n";
-			out += "	int run();\n";
+			out += "	size_t run();\n";
 			
 			out += "public:\n";
 			out += "	Parser();\n";
@@ -580,7 +580,7 @@ class Main {
 			out += "	this->data = data;\n";
 			out += "}\n";
 			
-			out += "int Parser::run() {\n";
+			out += "size_t Parser::run() {\n";
 			out += File.getContent(epath+"/scripts/hllr_parser_c++");
 			out += "	return 0;\n";
 			out += "}\n";
