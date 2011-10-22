@@ -552,7 +552,7 @@ class Main {
 					for(i in 0...x.data.match.length) {
 						var name = "hllr__"+Std.string(x.data.match.length-i-1);
 //			out += "		var hahllr__"+Std.string(x.data.match.length-i-1)+" = ret.pop();\n";
-						if(x.data.match[i].isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
+						if(x.data.match[x.data.match.length-i-1].isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
 						else out += "var "+name+" = ret.pop();\n";
 					}
 			out += "		ret.push(({"+procattr(x.data.attr)+"}));\n";
