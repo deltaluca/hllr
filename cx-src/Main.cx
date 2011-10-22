@@ -519,7 +519,7 @@ class Main {
 			out += "				for(i in 0...c.cnt-1) stack.pop();\n";
 			out += "				cstate = stack[stack.length-1];\n";
 			out += "			}else stack.push(cstate);\n";
-			out += "			var goto actions[cstate][c.sym];\n";
+			out += "			var goto = actions[cstate][c.sym];\n";
 			out += "			switch(goto) { case aG(id): cstate = id; default: }\n";
 			out += "		case aA:\n";
 			out += "			break;\n";
