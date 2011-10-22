@@ -469,6 +469,8 @@ class Main {
 			out += "\n\n";
 			out += extra+"\n\n";	
 		
+			out += File.getContent(epath+"/scripts/hllr_extra");
+
 			out += "class HLlr {\n";
 			out += "	public static var errors:Array<String>;\n";
 			out += "\n";
