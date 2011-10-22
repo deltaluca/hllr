@@ -503,17 +503,19 @@ class Main {
 
 			out += "var stack = new Array<Int>();\n";
 			out += "var ret = new Array<Dynamic>();\n";
-			out += "var cur = input.pop();\n";
+			out += "input.push(null);\n";
+			out += "var cur = input.shift();\n";
 			out += "var cstate = entry_state;\n";
 
-			out += "while(cur!=null){\n";
-			out += "	var action = actions[cstate]["+haxenew_index+"(cur)];\n";
+			out += "while(true){\n";
+			out += "	var action = if(cur==null) actions[cstate][0] else\n";
+			out += "		actions[cstate]["+haxenew_index+"(cur)+2];\n";
 			out += "	switch(action) {\n";
 			out += "		case aS(id):\n";
 			out += "			ret.push(cur);\n";
 			out += "			stack.push(cstate);\n";
 			out += "			cstate = id;\n";
-			out += "			cur = input.pop();\n";
+			out += "			cur = input.shift();\n";
 			out += "		case aR(id):\n";
 			out += "			var c = rules[id];\n";
 			out += "			c.cb(ret);\n";
