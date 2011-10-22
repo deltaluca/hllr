@@ -42,6 +42,16 @@ class Main {
 		    Lib.println("\t\tValid for all compilation modes, and specifies that an LALR(1) parse table will be generated rather than a large (more general) LR(1) parse table");
 			Lib.println("");
 			Lib.println("\tFor syntax of .hlr file view hlr_readme");
+			Lib.println("");
+			Lib.println("\thllr descriptor.hlr output.hx -haxe-gen [-package name] -token Token -ast Ast -index Index");
+			Lib.println("\t\tGenerate pure haXe parser, with tokens belonging to the Token type");
+			Lib.println("\t\tFor instance, say:");
+			Lib.println("\t\tenum Token { ... }");
+			Lib.println("\t\tenum Ast { ... astToken(t:Token); }");
+			Lib.println("\t\tclass TokenUtil {\n");
+			Lib.println("\t\t\tstatic public function index(x:Token) { return ...; }\n");
+			Lib.println("\t\t}\n");
+			Lib.println("\t\tthen we will use -token pckg.Token -ast pckg.Ast -index pckg.TokenUtil.index");
 			
 			Sys.exit(0);
 			return;
@@ -52,6 +62,11 @@ class Main {
 		var hlex = null;
 		var cpp = false;
 		var purecpp = false;
+
+		var haxenew = false;
+		var haxenew_token = "";
+		var haxenew_ast = "";
+		var haxenew_index = "";
 		
 		var iarg = 2;
 		while(iarg < args.length) {
@@ -61,12 +76,21 @@ class Main {
 			if(flag=="-lalr1") { lalr1 = true; continue; }
 			if(flag=="-hlexcpp") { cpp = true; continue; }
 			if(flag=="-c++") { purecpp = true; continue; }
+			if(flag=="-haxe-gen") { haxenew = true; continue; }
+			if(flag=="-token" && iarg<args.length) { haxenew_token = args[iarg++]; continue; }
+			if(flag=="-ast" && iarg<args.length) { haxenew_ast = args[iarg++]; continue; }
+			if(flag=="-index" && iarg<args.length) { haxenew_index = args[iarg++]; continue; }
 			
 			Lib.println("Unrecognised flag "+flag);
 		}
-		
+
 		if(purecpp && hlex==null) {
 			Lib.println("ERROR, C++ requires -HLEX");
+			Sys.exit(1);
+		}
+
+		if(haxenew && (haxenew_token=="" || haxenew_ast=="")) {
+			Lib.println("ERROR, haxe-new requires -token -ast and -asttok");
 			Sys.exit(1);
 		}
 		
@@ -76,7 +100,6 @@ class Main {
 		var tokens = HLex.lexify(File.getContent(args[0]));
 		
 		Lib.println(" >> parsing descriptor file");
-		
 		var xterminals = new Array<Terminal>();
 		for(i in tokens) {
 			var p = switch(i.id) {
@@ -93,7 +116,6 @@ class Main {
 			xterminals.unshift(p);
 		}
 		xterminals.unshift(Terminal.DOLLAR);
-		
 		var hlr:Array<HLR> = cast HLlr.parse(xterminals);
 		if(hlr==null) Sys.exit(1);
 		
@@ -154,7 +176,6 @@ class Main {
 					}
 			}
 		}
-		
 		if(start_rule==null) {
 			Lib.println("Error: No parser entry specified");
 			Sys.exit(1);
@@ -442,8 +463,106 @@ class Main {
 		    Lib.println("WARNING: HLLR_ROOT NOT DEFINED");
 		    epath = "";
 		}
+	
+		if(haxenew) {
+			var out = "package "+packname+";\n";
+			out += "\n\n";
+			out += extra+"\n\n";	
 		
-		if(purecpp) {
+			out += "class HLlr {\n";
+			out += "	public static var errors:Array<String>;\n";
+			out += "\n";
+			out += "	public static function parse(input:Array<"+haxenew_token+">):"+haxenew_ast+" {\n";
+			out += "		errors = new Array<String>();\n";
+			out += "		var _ = aE;\n";
+			out += "		var actions = ";
+			out += Textual.array_string(cast actions, function(i:Array<SAction>) {
+				return Textual.array_string(i, function(j:SAction) {
+					return switch(j) {
+						case aE: "_";
+						case aS(id): "aS("+Std.string(id)+")";
+						case aR(id): "aR("+Std.string(id)+")";
+						case aG(id): "aG("+Std.string(id)+")";
+						case aA: "aA";
+					};
+				});
+			});
+			out += ";\n";
+	
+			out += "		var rules = ";
+			out += Textual.array_string(cast rules, function(x:{key:Int, data:Rule}) {
+				return "{ cb : R"+Std.string(x.key)+", sym : "+Std.string(x.data.nt.id)+" , cnt : "+Std.string(x.data.match.length)+" }";
+			});
+			out += ";\n";
+
+			out += "		var entry_state = "+Std.string(entry_state.id)+";\n";
+
+			//------------------------------
+
+			out += "var stack = new Array<Int>();\n";
+			out += "var ret = new Array<Dynamic>();\n";
+			out += "var cur = input.pop();\n";
+			out += "var cstate = entry_state;\n";
+
+			out += "while(cur!=null){\n";
+			out += "	var action = actions[cstate]["+haxenew_index+"(cur)];\n";
+			out += "	switch(action) {\n";
+			out += "		case aS(id):\n";
+			out += "			ret.push(cur);\n";
+			out += "			stack.push(cstate);\n";
+			out += "			cstate = id;\n";
+			out += "			cur = input.pop();\n";
+			out += "		case aR(id):\n";
+			out += "			var c = rules[id];\n";
+			out += "			c.cb(ret);\n";
+			out += "			if(c.cnt>0) {\n";
+			out += "				for(i in 0...c.cnt-1) stack.pop();\n";
+			out += "				cstate = stack[stack.length-1];\n";
+			out += "			}else stack.push(cstate);\n";
+			out += "			var goto actions[cstate][c.sym];\n";
+			out += "			switch(goto) { case aG(id): cstate = id; default: }\n";
+			out += "		case aA:\n";
+			out += "			break;\n";
+			out += "		case aE:\n";
+			out += "			throw \"yeeeeh, cba with errors\";\n";
+			out += "		default:\n";
+			out += "	}\n";
+			out += "}\n";
+
+			out += "return if(ret.length==0) null else ret[0];\n";
+
+			//------------------------------
+
+			out += "	}\n";
+
+			out += "\n";
+			for(x in rules) {
+			out += "	private static inline function R"+Std.string(x.key)+"(ret:Array<Dynamic>) {\n";
+				if(x.data.attr==null) {
+			out += "		//default action.\n";
+					for(i in 0...x.data.match.length)
+			out += "		ret.pop();\n";
+			out += "		ret.push(null);\n"; 
+				}else {
+			out += "		//assign arguments.\n";
+					for(i in 0...x.data.match.length) {
+						var name = "hllr__"+Std.string(x.data.match.length-i-1);
+//			out += "		var hahllr__"+Std.string(x.data.match.length-i-1)+" = ret.pop();\n";
+						if(x.data.match[i].isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
+						else out += "var "+name+" = ret.pop();\n";
+					}
+			out += "		ret.push(({"+procattr(x.data.attr)+"}));\n";
+				}
+			out += "	}\n";
+			}
+
+			out += "}\n";	
+			var file = File.write(args[1], false);
+			file.writeString(out);
+			file.flush();
+			file.close();
+		}
+		else if(purecpp) {
 			var out = "";
 			out += "#pragma once\n";
 			out += "#include <string>\n";
