@@ -543,10 +543,7 @@ class Main {
 			for(x in rules) {
 			out += "	private static inline function R"+Std.string(x.key)+"(ret:Array<Dynamic>) {\n";
 				if(x.data.attr==null) {
-			out += "		//default action.\n";
-					for(i in 0...x.data.match.length)
-			out += "		ret.pop();\n";
-			out += "		ret.push(null);\n"; 
+			out += "		//default action. (do nothing)\n";
 				}else {
 			out += "		//assign arguments.\n";
 					for(i in 0...x.data.match.length) {
