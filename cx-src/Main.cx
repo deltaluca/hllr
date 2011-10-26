@@ -180,6 +180,21 @@ class Main {
 			Lib.println("Error: No parser entry specified");
 			Sys.exit(1);
 		}
+
+		//check all compounds actually exist (by checking for empty rules)
+		//since non-terminals are generated for dummies
+		for(ntp in nonterminals) {
+			var nt = ntp.data;
+			for(r in nt.rules) {
+				for(m in r.match) {
+					if(m.isTerminal) continue;
+					var nt2:NonTerminal = cast m;
+					if(nt2.rules.length!=0) continue;
+					
+					Lib.println("Warning: Non-terminal '"+nt2.meta+"' may be a typo as it has no associated rules in rule '"+r.meta+"' of non-terminal '"+nt.meta+"'");			
+				}	
+			}
+		}
 		
 		var start_symbol = new NonTerminal("%entry");
 		start_symbol.rules.push(new Rule(cast [start_rule]));
@@ -543,7 +558,10 @@ class Main {
 			for(x in rules) {
 			out += "	private static inline function R"+Std.string(x.key)+"(ret:Array<Dynamic>) {\n";
 				if(x.data.attr==null) {
-			out += "		//default action. (do nothing)\n";
+			out += "		//default action. (do nothing in particular)\n";
+					for(i in 0...x.data.match.length-1)
+			out += "		ret.pop();\n";
+			out += "		// --> keep on stack <-- ret.pop();\n";
 				}else {
 			out += "		//assign arguments.\n";
 					for(i in 0...x.data.match.length) {
