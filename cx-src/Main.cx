@@ -489,9 +489,78 @@ class Main {
 			out += "class HLlr {\n";
 			out += "	public static var errors:Array<String>;\n";
 			out += "\n";
+			out += "	static var actions:Array<Array<{from:Int,to:Int,act:Action}>>;\n";
+			out += "	static var rules:Array<{cb:Array<Dynamic>->Void,sym:Int,cnt:Int}>;\n";
+			out += "	static function init() {\n";
+			out += "		if(actions!=null) return;\n";
+			out += "		actions = new Array<Array<{from:Int,to:Int,act:Action}>>();\n";
+			for(i in actions) {
+				var any = false;
+				for(j in i) { switch(j) { case aE: default: any = true; break; } }
+				if(!any) {
+			out += "		/* Error action only */ actions.push(null);\n";
+					continue;
+				}
+			out += "		var ret = [];\n";
+				var pre:{from:Int,to:Int,act:SAction} = null;
+				var cur = 0;
+				for(j in i) {
+					var ext = false;
+					switch(j) {
+						case aE:     if(pre != null && switch(pre.act) { case aE:      true;    default: false; }) ext = true;
+						case aA:     if(pre != null && switch(pre.act) { case aA:      true;    default: false; }) ext = true;
+						case aS(id): if(pre != null && switch(pre.act) { case aS(id2): id==id2; default: false; }) ext = true;
+						case aR(id): if(pre != null && switch(pre.act) { case aR(id2): id==id2; default: false; }) ext = true;
+						case aG(id): if(pre != null && switch(pre.act) { case aG(id2): id==id2; default: false; }) ext = true;
+					}
+					if(ext) pre.to++;
+					else {
+						if(pre!=null && !(switch(pre.act) { case aE: true; default: false;})) {
+			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
+								case aE: "aE";
+								case aA: "aA";
+								case aS(id): "aS("+Std.string(id)+")";
+								case aR(id): "aR("+Std.string(id)+")";
+								case aG(id): "aG("+Std.string(id)+")";
+							})+"});\n";
+						}
+						pre = {from:cur,to:cur,act:j};
+					}
+					cur++;
+				}
+				if(pre!=null && !(switch(pre.act) { case aE: true; default: false;})) {
+			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
+						case aE: "aE";
+						case aA: "aA";
+						case aS(id): "aS("+Std.string(id)+")";
+						case aR(id): "aR("+Std.string(id)+")";
+						case aG(id): "aG("+Std.string(id)+")";
+					})+"});\n";
+				}
+			out += "		actions.push(ret);\n";
+			}
+			out += "\n";
+			out += "		rules = new Array<{cb:Array<Dynamic>->Void,sym:Int,cnt:Int}>();\n";
+			for(x in rules) {
+			out += "		rules.push({cb:R"+Std.string(x.key)+", sym:"+Std.string(x.data.nt.id)+", cnt:"+Std.string(x.data.match.length)+"});\n";
+			}
+			out += "	}\n";
+			out += "	static function getaction(cstate:Int,ind:Int) {\n";
+			out += "		var acts = actions[cstate];\n";
+			out += "		if(acts==null) return aE;\n";
+			out += "\n";
+			out += "		for(x in acts) {\n";
+			out += "			if(x.from <= ind && ind <= x.to) return x.act;\n";
+			out += "			else if(x.from > ind) return aE;\n";
+			out += "		}\n";
+			out += "		return aE;\n";
+			out += "	}\n";
+			out += "\n";
 			out += "	public static function parse(input:Array<"+haxenew_token+">):"+haxenew_ast+" {\n";
+			out += "		init();\n";
+			out += "\n";
 			out += "		errors = new Array<String>();\n";
-			out += "		var _ = aE;\n";
+/*			out += "		var _ = aE;\n";
 			out += "		var actions = ";
 			out += Textual.array_string(cast actions, function(i:Array<SAction>) {
 				return Textual.array_string(i, function(j:SAction) {
@@ -510,7 +579,7 @@ class Main {
 			out += Textual.array_string(cast rules, function(x:{key:Int, data:Rule}) {
 				return "{ cb : R"+Std.string(x.key)+", sym : "+Std.string(x.data.nt.id)+" , cnt : "+Std.string(x.data.match.length)+" }";
 			});
-			out += ";\n";
+			out += ";\n";*/
 
 			out += "		var entry_state = "+Std.string(entry_state.id)+";\n";
 
@@ -523,8 +592,9 @@ class Main {
 			out += "var cstate = entry_state;\n";
 
 			out += "while(true){\n";
-			out += "	var action = if(cur==null) actions[cstate][0] else\n";
-			out += "		actions[cstate]["+haxenew_index+"(cur)+2];\n";
+/*			out += "	var action = if(cur==null) actions[cstate][0] else\n";
+			out += "		actions[cstate]["+haxenew_index+"(cur)+2];\n";*/
+			out += "	var action = getaction(cstate,cur==null ? 0 : "+haxenew_index+"(cur)+2);\n";
 			out += "	switch(action) {\n";
 			out += "		case aS(id):\n";
 			out += "			ret.push(cur);\n";
@@ -538,7 +608,8 @@ class Main {
 			out += "				for(i in 0...c.cnt-1) stack.pop();\n";
 			out += "				cstate = stack[stack.length-1];\n";
 			out += "			}else stack.push(cstate);\n";
-			out += "			var goto = actions[cstate][c.sym];\n";
+//			out += "			var goto = actions[cstate][c.sym];\n";
+			out += "			var goto = getaction(cstate,c.sym);\n";
 			out += "			switch(goto) { case aG(id): cstate = id; default: }\n";
 			out += "		case aA:\n";
 			out += "			break;\n";
