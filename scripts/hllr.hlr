@@ -5,7 +5,7 @@
 		h_tdecl ( tokens : Array<String> );
 		h_extra ( haxe : String );
 		h_entry ( entry : String );
-		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String } > );
+		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String }>, type:String );
 	}
 	
 %}
@@ -19,7 +19,8 @@
 %state	: TOKEN idents					%{ h_tdecl(%1);			%}
 		| STSYM IDENT					%{ h_entry(%1.data);	%}
 		| HAXE							%{ h_extra(%0.data);	%}
-		| PERC IDENT COLON alts SEMI	%{ h_rules(%1.data,%3);	%}
+		| PERC IDENT COLON alts SEMI	%{ h_rules(%1.data,%3,"Dynamic");	%}
+		| PERC IDENT HAXE COLON alts SEMI	%{ h_rules(%1.data,%4,%2.data);	%}
 		;
 		
 %idents	: IDENT			%{ [%0.data];					   %}

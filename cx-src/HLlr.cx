@@ -5,7 +5,7 @@ package ;
 		h_tdecl ( tokens : Array<String> );
 		h_extra ( haxe : String );
 		h_entry ( entry : String );
-		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String } > );
+		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String }>, type:String );
 	}
 	
 
@@ -16,9 +16,9 @@ class HLlr {
 		errors = new Array<String>();
 
 		var _ = aE;
-        var actions = [[_,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),aG(1),aG(3),_,_,_],[aA,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),_,aG(2),_,_,_],[aR(1),_,_,aR(1),aR(1),_,_,_,aR(1),aR(1),_,_,_,_,_],[aR(0),_,_,aR(0),aR(0),_,_,_,aR(0),aR(0),_,_,_,_,_],[_,_,aS(15),_,_,_,_,_,_,_,_,_,aG(5),_,_],[aR(2),_,aS(17),aR(2),aR(2),_,_,_,aR(2),aR(2),_,_,_,_,_],[aR(4),_,_,aR(4),aR(4),_,_,_,aR(4),aR(4),_,_,_,_,_],[_,_,aS(8),_,_,_,_,_,_,_,_,_,_,_,_],[aR(3),_,_,aR(3),aR(3),_,_,_,aR(3),aR(3),_,_,_,_,_],[_,_,aS(10),_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,aS(11),_,_,_,_,_,_,_,_,_],[_,_,aS(15),_,aS(20),_,aR(13),aR(13),_,_,_,_,aG(16),aG(12),aG(19)],[_,_,_,_,_,_,aS(14),aS(13),_,_,_,_,_,_,_],[aR(5),_,_,aR(5),aR(5),_,_,_,aR(5),aR(5),_,_,_,_,_],[_,_,aS(15),_,aS(20),_,aR(13),aR(13),_,_,_,_,aG(16),_,aG(18)],[aR(6),_,aR(6),aR(6),aR(6),_,aR(6),aR(6),aR(6),aR(6),_,_,_,_,_],[_,_,aS(17),_,aS(21),_,aR(10),aR(10),_,_,_,_,_,_,_],[aR(7),_,aR(7),aR(7),aR(7),_,aR(7),aR(7),aR(7),aR(7),_,_,_,_,_],[_,_,_,_,_,_,aR(9),aR(9),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(8),aR(8),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(12),aR(12),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(11),aR(11),_,_,_,_,_,_,_]];
+        var actions = [[_,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),aG(1),aG(3),_,_,_],[aA,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),_,aG(2),_,_,_],[aR(1),_,_,aR(1),aR(1),_,_,_,aR(1),aR(1),_,_,_,_,_],[aR(0),_,_,aR(0),aR(0),_,_,_,aR(0),aR(0),_,_,_,_,_],[_,_,aS(19),_,_,_,_,_,_,_,_,_,aG(5),_,_],[aR(2),_,aS(21),aR(2),aR(2),_,_,_,aR(2),aR(2),_,_,_,_,_],[aR(4),_,_,aR(4),aR(4),_,_,_,aR(4),aR(4),_,_,_,_,_],[_,_,aS(8),_,_,_,_,_,_,_,_,_,_,_,_],[aR(3),_,_,aR(3),aR(3),_,_,_,aR(3),aR(3),_,_,_,_,_],[_,_,aS(10),_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,aS(11),aS(15),_,_,_,_,_,_,_,_,_],[_,_,_,_,_,aS(12),_,_,_,_,_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),aG(13),aG(23)],[_,_,_,_,_,_,aS(18),aS(14),_,_,_,_,_,_,_],[aR(6),_,_,aR(6),aR(6),_,_,_,aR(6),aR(6),_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),aG(16),aG(23)],[_,_,_,_,_,_,aS(18),aS(17),_,_,_,_,_,_,_],[aR(5),_,_,aR(5),aR(5),_,_,_,aR(5),aR(5),_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),_,aG(22)],[aR(7),_,aR(7),aR(7),aR(7),_,aR(7),aR(7),aR(7),aR(7),_,_,_,_,_],[_,_,aS(21),_,aS(25),_,aR(11),aR(11),_,_,_,_,_,_,_],[aR(8),_,aR(8),aR(8),aR(8),_,aR(8),aR(8),aR(8),aR(8),_,_,_,_,_],[_,_,_,_,_,_,aR(10),aR(10),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(9),aR(9),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(13),aR(13),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(12),aR(12),_,_,_,_,_,_,_]];
 
-        var rules = [{ cb : R0, sym : 10 , cnt : 1 },{ cb : R1, sym : 10 , cnt : 2 },{ cb : R2, sym : 11 , cnt : 2 },{ cb : R3, sym : 11 , cnt : 2 },{ cb : R4, sym : 11 , cnt : 1 },{ cb : R5, sym : 11 , cnt : 5 },{ cb : R6, sym : 12 , cnt : 1 },{ cb : R7, sym : 12 , cnt : 2 },{ cb : R8, sym : 13 , cnt : 1 },{ cb : R9, sym : 13 , cnt : 3 },{ cb : R10, sym : 14 , cnt : 1 },{ cb : R11, sym : 14 , cnt : 2 },{ cb : R12, sym : 14 , cnt : 1 },{ cb : R13, sym : 14 , cnt : 0 }];
+        var rules = [{ cb : R0, sym : 10 , cnt : 1 },{ cb : R1, sym : 10 , cnt : 2 },{ cb : R2, sym : 11 , cnt : 2 },{ cb : R3, sym : 11 , cnt : 2 },{ cb : R4, sym : 11 , cnt : 1 },{ cb : R5, sym : 11 , cnt : 5 },{ cb : R6, sym : 11 , cnt : 6 },{ cb : R7, sym : 12 , cnt : 1 },{ cb : R8, sym : 12 , cnt : 2 },{ cb : R9, sym : 13 , cnt : 1 },{ cb : R10, sym : 13 , cnt : 3 },{ cb : R11, sym : 14 , cnt : 1 },{ cb : R12, sym : 14 , cnt : 2 },{ cb : R13, sym : 14 , cnt : 1 },{ cb : R14, sym : 14 , cnt : 0 }];
 
 		var entry_state = 0;
 
@@ -101,48 +101,58 @@ return if(ret.length==0) null else ret[0];	}
 		var hllr__2 = ret.pop();
 		var hllr__1 = ret.pop();
 		var hllr__0 = ret.pop();
-		ret.push(({ h_rules(hllr__1.data,hllr__3);	}));
+		ret.push(({ h_rules(hllr__1.data,hllr__3,"Dynamic");	}));
 	}
 	private static inline function R6(ret:Array<Dynamic>) {
+		//assign arguments.
+		var hllr__5 = ret.pop();
+		var hllr__4 = ret.pop();
+		var hllr__3 = ret.pop();
+		var hllr__2 = ret.pop();
+		var hllr__1 = ret.pop();
+		var hllr__0 = ret.pop();
+		ret.push(({ h_rules(hllr__1.data,hllr__4,hllr__2.data);	}));
+	}
+	private static inline function R7(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__0 = ret.pop();
 		ret.push(({ [hllr__0.data];					   }));
 	}
-	private static inline function R7(ret:Array<Dynamic>) {
+	private static inline function R8(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__1 = ret.pop();
 		var hllr__0 = ret.pop();
 		ret.push(({ var x = hllr__0; x.push(hllr__1.data); x; }));
 	}
-	private static inline function R8(ret:Array<Dynamic>) {
+	private static inline function R9(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__0 = ret.pop();
 		ret.push(({ [hllr__0];					  }));
 	}
-	private static inline function R9(ret:Array<Dynamic>) {
+	private static inline function R10(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__2 = ret.pop();
 		var hllr__1 = ret.pop();
 		var hllr__0 = ret.pop();
 		ret.push(({ var x = hllr__0; x.push(hllr__2); x; }));
 	}
-	private static inline function R10(ret:Array<Dynamic>) {
+	private static inline function R11(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__0 = ret.pop();
 		ret.push(({ { rule : hllr__0, haxe : null 	}; }));
 	}
-	private static inline function R11(ret:Array<Dynamic>) {
+	private static inline function R12(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__1 = ret.pop();
 		var hllr__0 = ret.pop();
 		ret.push(({ { rule : hllr__0, haxe : hllr__1.data	}; }));
 	}
-	private static inline function R12(ret:Array<Dynamic>) {
+	private static inline function R13(ret:Array<Dynamic>) {
 		//assign arguments.
 		var hllr__0 = ret.pop();
 		ret.push(({ { rule : [], haxe : hllr__0.data  }; }));
 	}
-	private static inline function R13(ret:Array<Dynamic>) {
+	private static inline function R14(ret:Array<Dynamic>) {
 		//assign arguments.
 		ret.push(({ { rule : [], haxe : null     }; }));
 	}

@@ -40,7 +40,7 @@ class Rule {
 	public var meta:String;
 	public var nt:NonTerminal;
 	public var attr:String;
-	
+
 	public var match:Array<Symbol>;
 	public function new(x:Array<Symbol>, ?meta:String="") {
 		id = nextId++;
@@ -53,12 +53,13 @@ class Rule {
 
 class NonTerminal extends Symbol {
 	public var rules : Array<Rule>;
-	
+	public var type : String;	
 	public function new(?meta:String="") {
 		isTerminal = false;
 		this.meta = meta;
 		id = Symbol.nextId++;
 		rules = new Array<Rule>();
+		type = "Dynamic";
 	}
 	
 	public override function toString() return meta

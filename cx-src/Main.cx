@@ -43,15 +43,14 @@ class Main {
 			Lib.println("");
 			Lib.println("\tFor syntax of .hlr file view hlr_readme");
 			Lib.println("");
-			Lib.println("\thllr descriptor.hlr output.hx -haxe-gen [-package name] -token Token -ast Ast -index Index");
+			Lib.println("\thllr descriptor.hlr output.hx -haxe-gen [-package name] -token Token -index Index");
 			Lib.println("\t\tGenerate pure haXe parser, with tokens belonging to the Token type");
 			Lib.println("\t\tFor instance, say:");
 			Lib.println("\t\tenum Token { ... }");
-			Lib.println("\t\tenum Ast { ... astToken(t:Token); }");
 			Lib.println("\t\tclass TokenUtil {\n");
 			Lib.println("\t\t\tstatic public function index(x:Token) { return ...; }\n");
 			Lib.println("\t\t}\n");
-			Lib.println("\t\tthen we will use -token pckg.Token -ast pckg.Ast -index pckg.TokenUtil.index");
+			Lib.println("\t\tthen we will use -token pckg.Token -index pckg.TokenUtil.index");
 			
 			Sys.exit(0);
 			return;
@@ -65,7 +64,6 @@ class Main {
 
 		var haxenew = false;
 		var haxenew_token = "";
-		var haxenew_ast = "";
 		var haxenew_index = "";
 		
 		var iarg = 2;
@@ -78,7 +76,6 @@ class Main {
 			if(flag=="-c++") { purecpp = true; continue; }
 			if(flag=="-haxe-gen") { haxenew = true; continue; }
 			if(flag=="-token" && iarg<args.length) { haxenew_token = args[iarg++]; continue; }
-			if(flag=="-ast" && iarg<args.length) { haxenew_ast = args[iarg++]; continue; }
 			if(flag=="-index" && iarg<args.length) { haxenew_index = args[iarg++]; continue; }
 			
 			Lib.println("Unrecognised flag "+flag);
@@ -89,7 +86,7 @@ class Main {
 			Sys.exit(1);
 		}
 
-		if(haxenew && (haxenew_token=="" || haxenew_ast=="")) {
+		if(haxenew && (haxenew_token=="")) {
 			Lib.println("ERROR, haxe-new requires -token -ast and -asttok");
 			Sys.exit(1);
 		}
@@ -157,7 +154,7 @@ class Main {
 					extra += haxe;
 				case h_entry(entry):
 					start_rule = getsym(entry);
-				case h_rules(nt,rules):
+				case h_rules(nt,rules,type):
 					var sym = getsym(nt);
 					if(sym.isTerminal) {
 						Lib.println("ERROR: NonTerminal "+nt+" is a terminal!");
@@ -165,6 +162,7 @@ class Main {
 					}
 					
 					var snt:NonTerminal = cast sym;
+					snt.type = type;
 					
 					for(i in rules) {
 						var srule = new Array<Symbol>();
@@ -556,7 +554,8 @@ class Main {
 			out += "		return aE;\n";
 			out += "	}\n";
 			out += "\n";
-			out += "	public static function parse(input:Array<"+haxenew_token+">):"+haxenew_ast+" {\n";
+			var starttype = if(start_rule.isTerminal) "Dynamic" else (cast(start_rule,NonTerminal).type);
+			out += "	public static function parse(input:Array<"+haxenew_token+">):"+starttype+" {\n";
 			out += "		init();\n";
 			out += "\n";
 			out += "		errors = new Array<String>();\n";
@@ -638,8 +637,9 @@ class Main {
 					for(i in 0...x.data.match.length) {
 						var name = "hllr__"+Std.string(x.data.match.length-i-1);
 //			out += "		var hahllr__"+Std.string(x.data.match.length-i-1)+" = ret.pop();\n";
-						if(x.data.match[x.data.match.length-i-1].isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
-						else out += "var "+name+" = ret.pop();\n";
+						var sym = x.data.match[x.data.match.length-i-1];
+						if(sym.isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
+						else out += "var "+name+":"+(cast(sym,NonTerminal).type)+" = ret.pop();\n";
 					}
 			out += "		ret.push(({"+procattr(x.data.attr)+"}));\n";
 				}
