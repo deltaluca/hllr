@@ -641,7 +641,8 @@ class Main {
 						if(sym.isTerminal) out += "var "+name+":"+haxenew_token+" = ret.pop();\n";
 						else out += "var "+name+":"+(cast(sym,NonTerminal).type)+" = ret.pop();\n";
 					}
-			out += "		ret.push(({"+procattr(x.data.attr)+"}));\n";
+			out += "		var retret:"+x.data.nt.type+" = ({"+procattr(x.data.attr)+"});\n";
+			out += "		ret.push(retret);\n";
 				}
 			out += "	}\n";
 			}
