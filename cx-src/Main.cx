@@ -97,7 +97,7 @@ class Main {
 		var tokens = HLex.lexify(File.getContent(args[0]));
 		
 		Lib.println(" >> parsing descriptor file");
-		var xterminals = new Array<Terminal>();
+/*		var xterminals = new Array<Terminal>();
 		for(i in tokens) {
 			var p = switch(i.id) {
 				case Token.t_ident: Terminal.IDENT.inst(i.data);
@@ -112,8 +112,8 @@ class Main {
 			}
 			xterminals.unshift(p);
 		}
-		xterminals.unshift(Terminal.DOLLAR);
-		var hlr:Array<HLR> = cast HLlr.parse(xterminals);
+		xterminals.unshift(Terminal.DOLLAR);*/
+		var hlr:Array<HLR> = HLlr.parse(tokens);
 		if(hlr==null) Sys.exit(1);
 		
 		var terminals    = new StringMap(STerminal)();
@@ -140,7 +140,7 @@ class Main {
 		
 		for(S in hlr) {
 			switch(S) {
-				case h_tdecl(tokens):
+				case hDecl(tokens):
 					for(x in tokens) {
 						if(nonterminals.has(x)) {
 							Lib.println("Warning: Token name "+x+" is a non-terminal!");
@@ -150,11 +150,11 @@ class Main {
 							continue;
 						}
 					}
-				case h_extra(haxe):
+				case hExtra(haxe):
 					extra += haxe;
-				case h_entry(entry):
+				case hEntry(entry):
 					start_rule = getsym(entry);
-				case h_rules(nt,rules,type):
+				case hRules(nt,rules,type):
 					var sym = getsym(nt);
 					if(sym.isTerminal) {
 						Lib.println("ERROR: NonTerminal "+nt+" is a terminal!");

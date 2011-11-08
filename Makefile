@@ -21,7 +21,7 @@ hlex_process:
 	@echo "---------------"
 	@echo "Building lexer for .hlr files"
 	@echo "---------------"
-	hlex scripts/hllr.hlx -haxe cx-src/HLex.cx
+	hlex scripts/hllr.hlx -haxe-gen cx-src/HLex.cx
 	
 pre_process: hlex_process
 	@echo "---------------"
@@ -42,7 +42,7 @@ bootstrap:
 	@echo "---------------"
 	@echo "Bootstrapping hllr!"
 	@echo "---------------"
-	hllr scripts/hllr.hlr cx-src/HLlr.cx -lalr1
+	hllr scripts/hllr.hlr cx-src/HLlr.cx -haxe-gen -token Token -index TokenUtils.index -lalr1
 
 tar:
 	@echo "---------------"

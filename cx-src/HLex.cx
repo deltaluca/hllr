@@ -1,100 +1,205 @@
 package ;
 
 
-class HLex {
-	    static inline var entry_state:Int = 7;
+	enum Token {
+		tIdent(x:String);
+		tToken;
+		tHaxe(x:String);
+		tColon;
+		tBar;
+		tSemi;
+		tStart;
+		tPerc;
+	}
 
-        static var transitions = [[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,20,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2].concat([2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]).concat([2,2,2,2,2,2,2,2,2]),[-1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,2,2,2,2,22,2,2,2,2,2,2,2,2,2,2,2,2].concat([2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]).concat([2,2,2,2,2,2,2,2,2]),[-1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4].concat([4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]).concat([4,4,4,4,4,4,4,4,4]),[-1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4].concat([4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]).concat([4,4,4,4,4,16,4,4,4]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,23,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,24,24,-1,-1,24,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,24,-1,-1,-1,-1,21,-1,-1,-1,-1,-1,-1,-1,-1,-1,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,17,19].concat([-1,-1,-1,-1,-1,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,-1,-1,-1,-1,14,-1,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14]).concat([14,14,14,-1,18,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,13,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,13,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,9,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,9,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,12,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,12,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,14,14,14,14,14,14,14,14,14,14,-1,-1].concat([-1,-1,-1,-1,-1,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,-1,-1,-1,-1,14,-1,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14]).concat([14,14,14,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,11,-1,-1,-1]).concat([-1,-1,-1,4,-1,-1,-1,-1,-1]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1]),[-1,23,23,23,23,23,23,23,23,23,-1,23,23,-1,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23].concat([23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23]).concat([23,23,23,23,23,23,23,23,23]),[-1,-1,-1,-1,-1,-1,-1,-1,-1,24,24,-1,-1,24,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,24,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].concat([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]).concat([-1,-1,-1,-1,-1,-1,-1,-1,-1])];
+	class TokenUtils {
+		public static inline function index(x:Token) return Type.enumIndex(x)
+	}
+
+class HLex {
+		static inline var entry_state:Int = 7;
+
+	static var transitions:Array<Array<Array<Int>>> = null;
+	public static function init() {
+		if(transitions!=null) return;
+		transitions = [];
+var cur = [];
+cur.push([89,89,20]);
+cur.push([121,121,20]);
+transitions.push(cur);
+var cur = [];
+cur.push([78,78,19]);
+cur.push([110,110,19]);
+transitions.push(cur);
+var cur = [];
+cur.push([1,41,2]);
+cur.push([43,128,2]);
+cur.push([42,42,3]);
+transitions.push(cur);
+var cur = [];
+cur.push([1,41,2]);
+cur.push([43,46,2]);
+cur.push([48,128,2]);
+cur.push([42,42,3]);
+cur.push([47,47,14]);
+transitions.push(cur);
+var cur = [];
+cur.push([1,36,4]);
+cur.push([38,128,4]);
+cur.push([37,37,5]);
+transitions.push(cur);
+var cur = [];
+cur.push([1,36,4]);
+cur.push([38,124,4]);
+cur.push([126,128,4]);
+cur.push([37,37,5]);
+cur.push([125,125,18]);
+transitions.push(cur);
+var cur = [];
+cur.push([42,42,2]);
+cur.push([47,47,15]);
+transitions.push(cur);
+var cur = [];
+cur.push([9,10,16]);
+cur.push([13,13,16]);
+cur.push([32,32,16]);
+cur.push([37,37,24]);
+cur.push([47,47,6]);
+cur.push([58,58,21]);
+cur.push([59,59,23]);
+cur.push([65,90,17]);
+cur.push([95,95,17]);
+cur.push([97,122,17]);
+cur.push([124,124,22]);
+transitions.push(cur);
+var cur = [];
+cur.push([69,69,1]);
+cur.push([101,101,1]);
+transitions.push(cur);
+var cur = [];
+cur.push([75,75,8]);
+cur.push([107,107,8]);
+transitions.push(cur);
+var cur = [];
+cur.push([78,78,13]);
+cur.push([110,110,13]);
+transitions.push(cur);
+var cur = [];
+cur.push([79,79,9]);
+cur.push([111,111,9]);
+transitions.push(cur);
+var cur = [];
+cur.push([82,82,0]);
+cur.push([114,114,0]);
+transitions.push(cur);
+var cur = [];
+cur.push([84,84,12]);
+cur.push([116,116,12]);
+transitions.push(cur);
+transitions.push(null);
+var cur = [];
+cur.push([1,9,15]);
+cur.push([11,12,15]);
+cur.push([14,128,15]);
+transitions.push(cur);
+var cur = [];
+cur.push([9,10,16]);
+cur.push([13,13,16]);
+cur.push([32,32,16]);
+transitions.push(cur);
+var cur = [];
+cur.push([48,57,17]);
+cur.push([65,90,17]);
+cur.push([95,95,17]);
+cur.push([97,122,17]);
+transitions.push(cur);
+transitions.push(null);
+transitions.push(null);
+transitions.push(null);
+transitions.push(null);
+transitions.push(null);
+transitions.push(null);
+var cur = [];
+cur.push([69,69,10]);
+cur.push([101,101,10]);
+cur.push([84,84,11]);
+cur.push([116,116,11]);
+cur.push([123,123,4]);
+transitions.push(cur);
+}
 
         static var accepting = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,true,true,true,true,true,true,true,true,true];
 
-	public static function lexify(input_string:String):Array<Token> {
-var input = Unicode.fromString(input_string);
+	public static function lexify(input:String):Array<Token> {
+		init();
 var ret = new Array<Token>();
 var valid = false;
 var valcnt = 0;
 var attr = 0;
 var errstate = false;
-var errstr:UStr = null;
+var errstr:String = null;
 
 var state = entry_state;
 var pos = 0;
 var ipos = pos;
 
-while(pos < input.length) {
+while(pos<input.length) {
 	//evaluate next state to progress to.
 	var trans = transitions[state];
-	var char = input[pos];
+	var char = input.charCodeAt(pos);
 
-	state = if(char>=trans.length) trans[trans.length-1];
-	else trans[char];
-	
+	state = -1;
+	if(trans!=null){
+		for(range in trans) {
+			if(char>=range[0] && char<=range[1]) {
+				state = range[2];
+				break;
+			}
+		}
+	}
+
 	if(state==-1) {
 		//ERROR?
 		if(!valid) {
 			if(!errstate) {
-			    if(errstr==null)
-				    errstr = [input[ipos]];
-				else
-				    errstr.push(input[ipos]);
-			}
-			else errstr.push(char);
-			pos = ipos+1;
+				if(errstr==null) errstr = input.charAt(ipos);
+				else errstr += input.charAt(ipos);
+			}else errstr += String.fromCharCode(char);
+			pos = ipos + 1;
 		}else {
 			if(errstr!=null) {
-				ret.push(Token.get(Token.t_error,Unicode.string(errstr)));
+				var tok = errtok(errstr);
+				if(tok!=null) ret.push(tok);
 				errstr = null;
 			}
-			var tok = tokenof(attr,Unicode.substr(input,ipos,valcnt));
-			//var cb = tokens[attr];
-			//if(cb!=null)
-			//	ret.push(cb(Unicode.string(Unicode.substr(input,ipos,valcnt))));
+			var tok = tokenof(attr,input.substr(ipos,valcnt));
 			if(tok!=null) ret.push(tok);
 			pos = ipos+valcnt;
 		}
 		errstate = !valid;
-
-		//reset state
 		state = entry_state;
 		valid = false;
 		ipos = pos;
 	}else {
-	    pos++;
-	    errstate = false;
+		pos++;
+		errstate = false;
 	}
 
-	//accepting state reached? persevere anyways!
 	if(accepting[state]) {
 		valid = true;
-		//if(identb) pos--;
 		valcnt = pos-ipos;
 		attr = state;
 	}else if(pos==input.length) {
-	    //ERROR?
 		if(!valid) {
 			if(!errstate) {
-			    if(errstr==null)
-				    errstr = [input[ipos]];
-				else
-				    errstr.push(input[ipos]);
+				if(errstr==null) errstr = input.charAt(ipos);
+				else errstr += input.charAt(ipos);
 			}
-			else errstr.push(input[pos]);
-			pos = ipos+1;
-		}else {
-			if(errstr!=null) {
-				ret.push(Token.get(Token.t_error,Unicode.string(errstr)));
-				errstr = null;
-			}
-			var tok = tokenof(attr,Unicode.substr(input,ipos,valcnt));
-			//var cb = tokens[attr];
-			//if(cb!=null)
-			//	ret.push(cb(Unicode.string(Unicode.substr(input,ipos,valcnt))));
+			var tok = tokenof(attr,input.substr(ipos,valcnt));
 			if(tok!=null) ret.push(tok);
 			pos = ipos+valcnt;
 		}
 		errstate = !valid;
-
-		//reset state
 		state = entry_state;
 		valid = false;
 		ipos = pos;
@@ -102,196 +207,49 @@ while(pos < input.length) {
 }
 
 if(ipos<input.length) {
-	//ERROR?
-	if(!valid) {
-	    ret.push(Token.get(Token.t_error,Unicode.string(Unicode.substr(input,ipos))));
-	} else {
+	if(!valid) ret.push(errtok(input.substr(ipos)));
+	else {
 		if(errstr!=null) {
-			ret.push(Token.get(Token.t_error,Unicode.string(errstr)));
+			var tok = errtok(errstr);
+			if(tok!=null) ret.push(tok);
 			errstr = null;
 		}
-		var tok = tokenof(attr,Unicode.substr(input,ipos,valcnt));
-        //var cb = tokens[attr];
-        //if(cb!=null)
-        //	ret.push(cb(Unicode.string(Unicode.substr(input,ipos,valcnt))));
-        if(tok!=null) ret.push(tok);
+		var tok = tokenof(attr,input.substr(ipos,valcnt));
+		if(tok!=null) ret.push(tok);
 		pos = ipos+valcnt;
 	}
 }
+
 if(errstr!=null) {
-	ret.push(Token.get(Token.t_error,Unicode.string(errstr)));
+	var tok = errtok(errstr);
+	if(tok!=null) ret.push(tok);
 	errstr = null;
 }
 
-return ret;	}
-    static inline function tokenof(id:Int, hxl_ustr:UStr):Token {
-        switch(id) {
-            default: return null;
-            case 14:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_ident,({  hxl_match ; }));
-            case 15:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_token,null);
-            case 16:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_haxe,({  hxl_match .substr(2, hxl_match .length-4); }));
+return ret;
+}
+	static inline function errtok(hxl_match:String) {
+		return null;
+	}
+	static function tokenof(id:Int, hxl_match:String) {
+		switch(id) {
+			default: return null;
             case 17:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_colon,null);
+				return ({ tIdent( hxl_match ); });
             case 18:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_bar,null);
+				return ({ tHaxe( hxl_match .substr(2, hxl_match .length-4)); });
             case 19:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_semi,null);
+				return ({ tToken; });
             case 20:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_stsym,null);
+				return ({ tStart; });
             case 21:
-                var hxl_match = Unicode.string(hxl_ustr);
-                return Token.get(Token.t_perc,null);
+				return ({ tColon; });
+            case 22:
+				return ({ tBar;   });
+            case 23:
+				return ({ tSemi;  });
+            case 24:
+				return ({ tPerc;  });
         }
-    }
-}
-class Token {
-	public var data:Dynamic;
-	public var id:Int;
-
-	public var pool_next:Token;
-    public static var pool:Token;
-
-	public static inline var t_bar = 5;
-	public static inline var t_colon = 4;
-	public static inline var t_haxe = 3;
-	public static inline var t_ident = 1;
-	public static inline var t_perc = 8;
-	public static inline var t_semi = 6;
-	public static inline var t_stsym = 7;
-	public static inline var t_token = 2;
-
-	public static inline var t_error = 0;
-
-    static inline public function get(id:Int, data:Dynamic) {
-        if(pool==null) return new Token(id,data);
-        else {
-            var ret = pool; pool = ret.pool_next;
-            ret.id = id; ret.data = data;
-            return ret;
-        }
-    }
-    public inline function free() { pool_next = pool; pool = this; }
-	function new(id:Int, data:Dynamic) {
-		this.id = id; this.data = data;
 	}
-
-	public inline function toString() {
-        var names = ["error"].concat(["ident","token","haxe","colon","bar","semi","stsym","perc"]);
-		return names[id]+(data==null?"":"("+data+")");
-	}
-}
-#if neko
-	import haxe.Int32;
-#end
-
-typedef WChar = Int;
-typedef UStr = Array<WChar>;
-class Unicode {
-	
-	public static inline function concat(a:UStr, x:UStr) {
-		for(i in x) a.push(cast x);
-	}
-	
-	public static inline function substr(str:UStr, pos:Int, ?cnt:Int = -1) {
-		if(cnt==-1) cnt = str.length-pos;
-		var ret = new UStr();
-		var max = pos+cnt;
-		if(max>str.length) max = str.length;
-		for(i in pos...max) ret.push(str[i]);
-		return ret;
-	}
-	
-	public static inline function wchar(x:String) return fromString(x)[0]
-	
-	#if neko
-		public static inline function parseInt(x:String):Int32 {
-			var ret = Int32.ofInt(0);
-			for(i in 0...x.length) {
-				ret = Int32.mul(ret,Int32.ofInt(10));
-				ret = Int32.add(ret,Int32.ofInt(Std.parseInt(x.charAt(i))));
-			}
-			return ret;
-		}
-	
-		//neko uses a very weird encoding scheme.
-
-		//this is not guaranteed to be correct! but it works for what i've tested and analysed.
-		//it is limited to unicode points <= 0xffff though. so doesn't handle full unicode.
-		public static inline function string(str:UStr):String {
-			var ret = new StringBuf();
-			for(i in str) {
-				if(i<0x80) ret.addChar(i);
-				else if(i<0xfff) {
-					var c0 = i&0x3f;
-					i >>>= 6;
-					var c1 = i&0x3f;
-					
-					ret.addChar(0xc0 | c1);
-					ret.addChar(0x80 | c0);
-				}else {
-					var c0 = i&0x3f;
-					i >>>= 6;
-					var c1 = i&0x3f;
-					i >>>= 6;
-					var c2 = i&0x1f;
-					
-					ret.addChar(0xe0 | c2);
-					ret.addChar(0x80 | c1);
-					ret.addChar(0x80 | c0);
-				}
-			}
-			return ret.toString();
-		}
-		public static inline function fromString(str:String):UStr {
-			var ret = new UStr();
-			var pos = 0;
-			while(pos<str.length) {
-				var c0 = str.charCodeAt(pos++);
-				if((c0&0x80)==0) ret.push(c0);
-				else if((c0&0xc0)==0x80) {
-					var acc = c0&0x3f;
-					acc |= ((c0=str.charCodeAt(pos++))&0x3f)<<6;
-					if((c0&0xc0)==0x80)
-						acc |= ((c0=str.charCodeAt(pos++))&0x1f)<<12;
-					ret.push(acc);
-				}else if((c0&0xe0)==0xe0) {
-					var acc = (c0&0x1f)<<12;
-					acc |= ((str.charCodeAt(pos++))&0x3f)<<6;
-					acc |= (str.charCodeAt(pos++))&0x3f;
-					ret.push(acc);
-				}else if((c0&0xe0)==0xc0) {
-					var acc = (c0&0x3f)<<6;
-					acc |= (str.charCodeAt(pos++))&0x3f;
-					ret.push(acc);
-				}else break;
-			}
-			return ret;
-		}
-	#elseif flash
-		
-		public static inline function parseInt(x:String) return Std.parseInt(x)
-	
-		//flash uses nice simple wrapped unicode :)
-		public static inline function fromString(str:String):UStr {
-			var ret = new UStr();
-			for(i in 0...str.length) ret.push(str.charCodeAt(i));
-			return ret;
-		}
-		public static inline function string(str:UStr):String {
-			var ret = new StringBuf();
-			for(i in str) ret.addChar(i);
-			return ret.toString();
-		}
-	
-	#end
 }

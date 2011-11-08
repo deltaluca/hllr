@@ -1,0 +1,49 @@
+HLR syntax:
+
+HLR should describe all tokens and non-terminals that exist with their grammatical rules and types.
+
+To define tokens we use
+%token IDENT IDENT ...
+
+which may occur multiple times, these token identifers should match the order defined by the provided mapping function between tokens and 0+ id's
+
+For example, if the tokens (Token) are defined like:
+enum Token {
+	tInt;
+	tIdent;
+}
+
+then we should have in the hlr:
+%token INT IDENT
+
+with the index mapping function mapping tInt to 0 and tIdent to 1.
+
+What follows should be a list of all non-terminals and their rules defined like:
+
+%non-terminal %{ Type %} 
+	: [symbol list] [ %{ haxe %} ]
+	| more rules...
+;
+
+noting that an empty rule is allowed, and that not having any handling code will mean the last symbol in the matching list remains on the stack.
+
+the haxe code should use the symbols %N to match the N'th symbol.
+
+for instance:
+
+%bracket_int %{ Int %}
+	: LPAR integer RPAR %{ %1; %}
+;
+
+The type of a terminal symbol will be the Token type
+whilst the type of a non-terminal symbol is that defined by it's definition.
+
+The style of terminals being CAPITAL, and terminals being lower or camelCase is purely to help disambiguate them, this is not enforced.
+
+One last important entry in the hlr file is the entry non-terminal defined like:
+%entry nonTerminal
+
+for example:
+%entry bracket_int
+
+so that the return type of the HLlr parse method is that of the entry non-terminal.

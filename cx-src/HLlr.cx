@@ -1,191 +1,19 @@
 package ;
 
 
+
+	import HLex;
+	import scx.Match;
+
 	enum HLR {
-		h_tdecl ( tokens : Array<String> );
-		h_extra ( haxe : String );
-		h_entry ( entry : String );
-		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String }>, type:String );
-	}
-	
-
-class HLlr {
-	public static var errors:Array<String>;
-
-	public static function parse(input:Array<Terminal>):Dynamic {
-		errors = new Array<String>();
-
-		var _ = aE;
-        var actions = [[_,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),aG(1),aG(3),_,_,_],[aA,_,_,aS(4),aS(6),_,_,_,aS(7),aS(9),_,aG(2),_,_,_],[aR(1),_,_,aR(1),aR(1),_,_,_,aR(1),aR(1),_,_,_,_,_],[aR(0),_,_,aR(0),aR(0),_,_,_,aR(0),aR(0),_,_,_,_,_],[_,_,aS(19),_,_,_,_,_,_,_,_,_,aG(5),_,_],[aR(2),_,aS(21),aR(2),aR(2),_,_,_,aR(2),aR(2),_,_,_,_,_],[aR(4),_,_,aR(4),aR(4),_,_,_,aR(4),aR(4),_,_,_,_,_],[_,_,aS(8),_,_,_,_,_,_,_,_,_,_,_,_],[aR(3),_,_,aR(3),aR(3),_,_,_,aR(3),aR(3),_,_,_,_,_],[_,_,aS(10),_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,aS(11),aS(15),_,_,_,_,_,_,_,_,_],[_,_,_,_,_,aS(12),_,_,_,_,_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),aG(13),aG(23)],[_,_,_,_,_,_,aS(18),aS(14),_,_,_,_,_,_,_],[aR(6),_,_,aR(6),aR(6),_,_,_,aR(6),aR(6),_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),aG(16),aG(23)],[_,_,_,_,_,_,aS(18),aS(17),_,_,_,_,_,_,_],[aR(5),_,_,aR(5),aR(5),_,_,_,aR(5),aR(5),_,_,_,_,_],[_,_,aS(19),_,aS(24),_,aR(14),aR(14),_,_,_,_,aG(20),_,aG(22)],[aR(7),_,aR(7),aR(7),aR(7),_,aR(7),aR(7),aR(7),aR(7),_,_,_,_,_],[_,_,aS(21),_,aS(25),_,aR(11),aR(11),_,_,_,_,_,_,_],[aR(8),_,aR(8),aR(8),aR(8),_,aR(8),aR(8),aR(8),aR(8),_,_,_,_,_],[_,_,_,_,_,_,aR(10),aR(10),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(9),aR(9),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(13),aR(13),_,_,_,_,_,_,_],[_,_,_,_,_,_,aR(12),aR(12),_,_,_,_,_,_,_]];
-
-        var rules = [{ cb : R0, sym : 10 , cnt : 1 },{ cb : R1, sym : 10 , cnt : 2 },{ cb : R2, sym : 11 , cnt : 2 },{ cb : R3, sym : 11 , cnt : 2 },{ cb : R4, sym : 11 , cnt : 1 },{ cb : R5, sym : 11 , cnt : 5 },{ cb : R6, sym : 11 , cnt : 6 },{ cb : R7, sym : 12 , cnt : 1 },{ cb : R8, sym : 12 , cnt : 2 },{ cb : R9, sym : 13 , cnt : 1 },{ cb : R10, sym : 13 , cnt : 3 },{ cb : R11, sym : 14 , cnt : 1 },{ cb : R12, sym : 14 , cnt : 2 },{ cb : R13, sym : 14 , cnt : 1 },{ cb : R14, sym : 14 , cnt : 0 }];
-
-		var entry_state = 0;
-
-var stack = new Array<Int>();
-var ret = new Array<Dynamic>();
-
-var cur = input.pop();
-var cstate = entry_state;
-
-while(cur!=null) {
-	var action = actions[cstate][cur.id];
-	//trace(cstate+" "+Std.string(stack)+" # "+Std.string(cur)+" "+Std.string(action)+"  #  "+Std.string(input)+"   ~   "+Std.string(ret));
-	
-	switch(action) {
-		case aS(id):
-			ret.push(cur);
-			stack.push(cstate);
-			cstate = id;
-			cur = input.pop();
-		case aR(id):
-			var c = rules[id];
-			c.cb(ret);
-			
-			if(c.cnt>0) {
-				for(i in 0...c.cnt-1) stack.pop();
-				cstate = stack[stack.length-1];
-			}else stack.push(cstate);
-			
-			var goto = actions[cstate][c.sym];
-			switch(goto) { case aG(id): cstate = id; default: }
-		case aA:
-			break;
-		case aE:
-			if(cur != Terminal.ERROR) {
-				//if(input.length==0) input.push(Terminal.DOLLAR);
-				input.push(cur = Terminal.ERROR);
-			} else {
-				ret.pop();
-				if(stack.length==0) break;
-				cstate = stack.pop();
-			}
-		default:
-	}
-}
-
-return if(ret.length==0) null else ret[0];	}
-
-	private static inline function R0(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ [hllr__0];					  }));
-	}
-	private static inline function R1(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ var x = hllr__0; x.push(hllr__1); x; }));
-	}
-	private static inline function R2(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ h_tdecl(hllr__1);			}));
-	}
-	private static inline function R3(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ h_entry(hllr__1.data);	}));
-	}
-	private static inline function R4(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ h_extra(hllr__0.data);	}));
-	}
-	private static inline function R5(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__4 = ret.pop();
-		var hllr__3 = ret.pop();
-		var hllr__2 = ret.pop();
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ h_rules(hllr__1.data,hllr__3,"Dynamic");	}));
-	}
-	private static inline function R6(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__5 = ret.pop();
-		var hllr__4 = ret.pop();
-		var hllr__3 = ret.pop();
-		var hllr__2 = ret.pop();
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ h_rules(hllr__1.data,hllr__4,hllr__2.data);	}));
-	}
-	private static inline function R7(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ [hllr__0.data];					   }));
-	}
-	private static inline function R8(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ var x = hllr__0; x.push(hllr__1.data); x; }));
-	}
-	private static inline function R9(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ [hllr__0];					  }));
-	}
-	private static inline function R10(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__2 = ret.pop();
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ var x = hllr__0; x.push(hllr__2); x; }));
-	}
-	private static inline function R11(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ { rule : hllr__0, haxe : null 	}; }));
-	}
-	private static inline function R12(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__1 = ret.pop();
-		var hllr__0 = ret.pop();
-		ret.push(({ { rule : hllr__0, haxe : hllr__1.data	}; }));
-	}
-	private static inline function R13(ret:Array<Dynamic>) {
-		//assign arguments.
-		var hllr__0 = ret.pop();
-		ret.push(({ { rule : [], haxe : hllr__0.data  }; }));
-	}
-	private static inline function R14(ret:Array<Dynamic>) {
-		//assign arguments.
-		ret.push(({ { rule : [], haxe : null     }; }));
-	}
-}
-
-class Terminal {
-	public static var BAR = new Terminal(6);
-	public static var COLON = new Terminal(5);
-	public static var DOLLAR = new Terminal(0);
-	public static var ERROR = new Terminal(1);
-	public static var HAXE = new Terminal(4);
-	public static var IDENT = new Terminal(2);
-	public static var PERC = new Terminal(9);
-	public static var SEMI = new Terminal(7);
-	public static var STSYM = new Terminal(8);
-	public static var TOKEN = new Terminal(3);
-
-	public var id:Int;
-	public var data:Dynamic;
-
-	public static var cons:Array<Terminal> = null;	public static inline function initcons() {
-        if(cons==null) cons = [DOLLAR,ERROR,IDENT,TOKEN,HAXE,COLON,BAR,SEMI,STSYM,PERC];
+		hDecl(tokens:Array<String>);
+		hExtra(x:String);
+		hEntry(x:String);
+		hRules(nt:String, rules:Array<HLRule>, type:String);
 	}
 
-	public function new(id:Int) {
-		this.id = id;
-	}
-	public function inst(x:Dynamic) {
-		var ret = new Terminal(id);
-		ret.data = x;
-		return ret;
-	}
-}
+	typedef HLRule = {rule:Array<String>,haxe:String};
+
 
 enum Action {
 	aE;
@@ -193,4 +21,317 @@ enum Action {
 	aR(r:Int);
 	aA;
 	aG(n:Int);
+}class HLlr {
+	public static var errors:Array<String>;
+
+	static var actions:Array<Array<{from:Int,to:Int,act:Action}>>;
+	static var rules:Array<{cb:Array<Dynamic>->Void,sym:Int,cnt:Int}>;
+	static function init() {
+		if(actions!=null) return;
+		actions = new Array<Array<{from:Int,to:Int,act:Action}>>();
+		var ret = [];
+		ret.push({from:3,to:3,act:aS(4)});
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:8,to:8,act:aS(6)});
+		ret.push({from:9,to:9,act:aS(8)});
+		ret.push({from:10,to:10,act:aG(1)});
+		ret.push({from:11,to:11,act:aG(3)});
+		ret.push({from:14,to:14,act:aG(14)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aA});
+		ret.push({from:3,to:3,act:aS(4)});
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:8,to:8,act:aS(6)});
+		ret.push({from:9,to:9,act:aS(8)});
+		ret.push({from:11,to:11,act:aG(2)});
+		ret.push({from:14,to:14,act:aG(14)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(1)});
+		ret.push({from:3,to:4,act:aR(1)});
+		ret.push({from:8,to:9,act:aR(1)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(0)});
+		ret.push({from:3,to:4,act:aR(0)});
+		ret.push({from:8,to:9,act:aR(0)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:12,to:12,act:aG(5)});
+		ret.push({from:13,to:13,act:aG(18)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(2)});
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:3,to:4,act:aR(2)});
+		ret.push({from:8,to:9,act:aR(2)});
+		ret.push({from:13,to:13,act:aG(17)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:13,to:13,act:aG(7)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(3)});
+		ret.push({from:3,to:4,act:aR(3)});
+		ret.push({from:8,to:9,act:aR(3)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:13,to:13,act:aG(9)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:14,to:14,act:aG(10)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:5,to:5,act:aS(11)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:6,to:7,act:aR(13)});
+		ret.push({from:12,to:12,act:aG(16)});
+		ret.push({from:13,to:13,act:aG(18)});
+		ret.push({from:14,to:14,act:aG(24)});
+		ret.push({from:15,to:15,act:aG(12)});
+		ret.push({from:16,to:16,act:aG(22)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:6,to:6,act:aS(15)});
+		ret.push({from:7,to:7,act:aS(13)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(5)});
+		ret.push({from:3,to:4,act:aR(5)});
+		ret.push({from:8,to:9,act:aR(5)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(4)});
+		ret.push({from:3,to:4,act:aR(4)});
+		ret.push({from:8,to:9,act:aR(4)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:6,to:7,act:aR(13)});
+		ret.push({from:12,to:12,act:aG(16)});
+		ret.push({from:13,to:13,act:aG(18)});
+		ret.push({from:14,to:14,act:aG(24)});
+		ret.push({from:16,to:16,act:aG(21)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:2,to:2,act:aS(19)});
+		ret.push({from:4,to:4,act:aS(20)});
+		ret.push({from:6,to:7,act:aR(10)});
+		ret.push({from:13,to:13,act:aG(17)});
+		ret.push({from:14,to:14,act:aG(23)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(7)});
+		ret.push({from:2,to:4,act:aR(7)});
+		ret.push({from:6,to:9,act:aR(7)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(6)});
+		ret.push({from:2,to:4,act:aR(6)});
+		ret.push({from:6,to:9,act:aR(6)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(14)});
+		ret.push({from:2,to:4,act:aR(14)});
+		ret.push({from:6,to:9,act:aR(14)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:0,to:0,act:aR(15)});
+		ret.push({from:3,to:9,act:aR(15)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:6,to:7,act:aR(9)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:6,to:7,act:aR(8)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:6,to:7,act:aR(11)});
+		actions.push(ret);
+		var ret = [];
+		ret.push({from:6,to:7,act:aR(12)});
+		actions.push(ret);
+
+		rules = new Array<{cb:Array<Dynamic>->Void,sym:Int,cnt:Int}>();
+		rules.push({cb:R0, sym:10, cnt:1});
+		rules.push({cb:R1, sym:10, cnt:2});
+		rules.push({cb:R2, sym:11, cnt:2});
+		rules.push({cb:R3, sym:11, cnt:2});
+		rules.push({cb:R4, sym:11, cnt:1});
+		rules.push({cb:R5, sym:11, cnt:6});
+		rules.push({cb:R6, sym:12, cnt:1});
+		rules.push({cb:R7, sym:12, cnt:2});
+		rules.push({cb:R8, sym:15, cnt:1});
+		rules.push({cb:R9, sym:15, cnt:3});
+		rules.push({cb:R10, sym:16, cnt:1});
+		rules.push({cb:R11, sym:16, cnt:2});
+		rules.push({cb:R12, sym:16, cnt:1});
+		rules.push({cb:R13, sym:16, cnt:0});
+		rules.push({cb:R14, sym:13, cnt:1});
+		rules.push({cb:R15, sym:14, cnt:1});
+	}
+	static function getaction(cstate:Int,ind:Int) {
+		var acts = actions[cstate];
+		if(acts==null) return aE;
+
+		for(x in acts) {
+			if(x.from <= ind && ind <= x.to) return x.act;
+			else if(x.from > ind) return aE;
+		}
+		return aE;
+	}
+
+	public static function parse(input:Array<Token>): Array<HLR>  {
+		init();
+
+		errors = new Array<String>();
+		var entry_state = 0;
+var stack = new Array<Int>();
+var ret = new Array<Dynamic>();
+input.push(null);
+var cur = input.shift();
+var cstate = entry_state;
+while(true){
+	var action = getaction(cstate,cur==null ? 0 : TokenUtils.index(cur)+2);
+	switch(action) {
+		case aS(id):
+			ret.push(cur);
+			stack.push(cstate);
+			cstate = id;
+			cur = input.shift();
+		case aR(id):
+			var c = rules[id];
+			c.cb(ret);
+			if(c.cnt>0) {
+				for(i in 0...c.cnt-1) stack.pop();
+				cstate = stack[stack.length-1];
+			}else stack.push(cstate);
+			var goto = getaction(cstate,c.sym);
+			switch(goto) { case aG(id): cstate = id; default: }
+		case aA:
+			break;
+		case aE:
+			throw "yeeeeh, cba with errors";
+		default:
+	}
+}
+return if(ret.length==0) null else ret[0];
+	}
+
+	private static inline function R0(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: HLR  = ret.pop();
+		var retret: Array<HLR>  = ({ [hllr__0]; });
+		ret.push(retret);
+	}
+	private static inline function R1(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__1: HLR  = ret.pop();
+var hllr__0: Array<HLR>  = ret.pop();
+		var retret: Array<HLR>  = ({ hllr__0.push(hllr__1); hllr__0; });
+		ret.push(retret);
+	}
+	private static inline function R2(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__1: Array<String>  = ret.pop();
+var hllr__0:Token = ret.pop();
+		var retret: HLR  = ({ hDecl (hllr__1); });
+		ret.push(retret);
+	}
+	private static inline function R3(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__1: String  = ret.pop();
+var hllr__0:Token = ret.pop();
+		var retret: HLR  = ({ hEntry(hllr__1); });
+		ret.push(retret);
+	}
+	private static inline function R4(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: String  = ret.pop();
+		var retret: HLR  = ({ hExtra(hllr__0); });
+		ret.push(retret);
+	}
+	private static inline function R5(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__5:Token = ret.pop();
+var hllr__4: Array<HLRule>  = ret.pop();
+var hllr__3:Token = ret.pop();
+var hllr__2: String  = ret.pop();
+var hllr__1: String  = ret.pop();
+var hllr__0:Token = ret.pop();
+		var retret: HLR  = ({ hRules(hllr__1,hllr__4,hllr__2); });
+		ret.push(retret);
+	}
+	private static inline function R6(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: String  = ret.pop();
+		var retret: Array<String>  = ({ [hllr__0]; });
+		ret.push(retret);
+	}
+	private static inline function R7(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__1: String  = ret.pop();
+var hllr__0: Array<String>  = ret.pop();
+		var retret: Array<String>  = ({ hllr__0.push(hllr__1); hllr__0; });
+		ret.push(retret);
+	}
+	private static inline function R8(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: HLRule  = ret.pop();
+		var retret: Array<HLRule>  = ({ [hllr__0]; });
+		ret.push(retret);
+	}
+	private static inline function R9(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__2: HLRule  = ret.pop();
+var hllr__1:Token = ret.pop();
+var hllr__0: Array<HLRule>  = ret.pop();
+		var retret: Array<HLRule>  = ({ hllr__0.push(hllr__2); hllr__0; });
+		ret.push(retret);
+	}
+	private static inline function R10(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: Array<String>  = ret.pop();
+		var retret: HLRule  = ({ { rule: hllr__0, haxe: null }; });
+		ret.push(retret);
+	}
+	private static inline function R11(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__1: String  = ret.pop();
+var hllr__0: Array<String>  = ret.pop();
+		var retret: HLRule  = ({ { rule: hllr__0, haxe: hllr__1   }; });
+		ret.push(retret);
+	}
+	private static inline function R12(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0: String  = ret.pop();
+		var retret: HLRule  = ({ { rule: [], haxe: hllr__0   }; });
+		ret.push(retret);
+	}
+	private static inline function R13(ret:Array<Dynamic>) {
+		//assign arguments.
+		var retret: HLRule  = ({ { rule: [], haxe: null }; });
+		ret.push(retret);
+	}
+	private static inline function R14(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0:Token = ret.pop();
+		var retret: String  = ({ Match.match(hllr__0,tIdent(x)=x); });
+		ret.push(retret);
+	}
+	private static inline function R15(ret:Array<Dynamic>) {
+		//assign arguments.
+var hllr__0:Token = ret.pop();
+		var retret: String  = ({ Match.match(hllr__0,tHaxe (x)=x); });
+		ret.push(retret);
+	}
 }

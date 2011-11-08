@@ -1,38 +1,50 @@
-%token IDENT TOKEN HAXE COLON BAR SEMI STSYM PERC
+%token IDENT TOKEN HAXE COLON
+%token BAR SEMI START PERC
 
 %{
+	import HLex;
+	import scx.Match;
+
 	enum HLR {
-		h_tdecl ( tokens : Array<String> );
-		h_extra ( haxe : String );
-		h_entry ( entry : String );
-		h_rules ( nt : String, rules : Array< { rule : Array<String>, haxe : String }>, type:String );
+		hDecl(tokens:Array<String>);
+		hExtra(x:String);
+		hEntry(x:String);
+		hRules(nt:String, rules:Array<HLRule>, type:String);
 	}
-	
+
+	typedef HLRule = {rule:Array<String>,haxe:String};
 %}
 
 %entry prog
 
-%prog	: state			%{ [%0];					  %}
-		| prog state	%{ var x = %0; x.push(%1); x; %}
-		;
-	
-%state	: TOKEN idents					%{ h_tdecl(%1);			%}
-		| STSYM IDENT					%{ h_entry(%1.data);	%}
-		| HAXE							%{ h_extra(%0.data);	%}
-		| PERC IDENT COLON alts SEMI	%{ h_rules(%1.data,%3,"Dynamic");	%}
-		| PERC IDENT HAXE COLON alts SEMI	%{ h_rules(%1.data,%4,%2.data);	%}
-		;
-		
-%idents	: IDENT			%{ [%0.data];					   %}
-		| idents IDENT	%{ var x = %0; x.push(%1.data); x; %}
-		;
-			
-%alts	: alt			%{ [%0];					  %}
-		| alts BAR alt	%{ var x = %0; x.push(%2); x; %}
-		;
-		
-%alt	: idents		%{ { rule : %0, haxe : null 	}; %}
-		| idents HAXE	%{ { rule : %0, haxe : %1.data	}; %}
-		| HAXE          %{ { rule : [], haxe : %0.data  }; %}
-		|               %{ { rule : [], haxe : null     }; %}
-		;
+%prog %{ Array<HLR> %}
+	: state      %{ [%0]; %}
+	| prog state %{ %0.push(%1); %0; %}
+;
+
+%state %{ HLR %}
+	: TOKEN idents  %{ hDecl (%1); %}
+	| START ident   %{ hEntry(%1); %}
+	| haxe          %{ hExtra(%0); %}
+	| PERC ident haxe COLON alts SEMI %{ hRules(%1,%4,%2); %}
+;
+
+%idents %{ Array<String> %}
+	: ident        %{ [%0]; %}
+	| idents ident %{ %0.push(%1); %0; %}
+;
+
+%alts %{ Array<HLRule> %}
+	: alt          %{ [%0]; %}
+	| alts BAR alt %{ %0.push(%2); %0; %}
+;
+
+%alt %{ HLRule %}
+	: idents      %{ { rule: %0, haxe: null }; %}
+	| idents haxe %{ { rule: %0, haxe: %1   }; %}
+	|        haxe %{ { rule: [], haxe: %0   }; %}
+	|             %{ { rule: [], haxe: null }; %}
+;
+
+%ident %{ String %} : IDENT %{ Match.match(%0,tIdent(x)=x); %} ;
+%haxe  %{ String %} : HAXE  %{ Match.match(%0,tHaxe (x)=x); %} ;
