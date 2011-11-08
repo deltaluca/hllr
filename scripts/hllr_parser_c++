@@ -13,7 +13,7 @@ while(!isTOKEOS(cur)) {
 	int action = actions[cstate][isTOKEOF(cur) ? 0 : INDEX(cur)+2];
 	switch(action&3) {
 		case 0: //error
-			results->push(ParserResult(fname,Dynamic::null));
+			results->push(ParserResult(fname,AST::null));
 			
 			//skip to end of file, or end of process token.
 			while(!isTOKEOF(cur)) cur = tokens->pop();
@@ -29,7 +29,7 @@ while(!isTOKEOS(cur)) {
 
 			break;
 		case 1: //accept
-			results->push(ParserResult(fname,ret.front()));
+			results->push(ParserResult(fname,AST(ret.front())));
 
 			ret.clear();
 			

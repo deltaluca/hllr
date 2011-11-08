@@ -619,12 +619,18 @@ class Main {
 			out += "#include <"+hlex+".hpp>\n";
 //			out += "#include <"+tockincl+">\n";
 			out += "#include <token.hpp>\n";
+		
+			function proctype(x:String) {
+				return x;
+			}
 			
+			var starttype = if(start_rule.isTerminal) "Dynamic" else proctype(cast(start_rule,NonTerminal).type);
+
 			out += "struct ParserResult {\n";
 			out += "	std::string file_name;\n";
-			out += "	Dynamic data;\n";
+			out += "	"+starttype+" data;\n";
 			out += "	ParserResult();\n";
-			out += "	ParserResult(std::string& file_name, const Dynamic& data);\n";
+			out += "	ParserResult(std::string& file_name, const "+starttype+"& data);\n";
 			out += "};\n";
 			out += "std::ostream& operator<<(std::ostream&, const ParserResult&);\n";
 			
@@ -703,11 +709,7 @@ class Main {
 					}
 					
 					var sym = attr.substr(i,dcnt);
-					
-//					if(match[Std.parseInt(sym)].isTerminal)
-//						ret.add("(ptr<TOKEN>(hllr__"+sym+")->data)");
-//					else
-						ret.add("hllr__"+sym);
+					ret.add("hllr__"+sym);
 					
 					i += dcnt;
 				}else ret.addChar(c);
@@ -721,14 +723,17 @@ class Main {
 				out += "void R"+Std.string(x.key)+"(std::vector<Dynamic>& __ret) {\n";
 				if(x.data.attr==null) {
 				out += "	//default\n";
-				for(i in 0...x.data.match.length)
+				for(i in 0...x.data.match.length-1)
 				out += "	__ret.pop_back();\n";
-				out += "	__ret.push_back(NULL);\n";
 				}else {
 				out += "	//arguments\n";
-				for(i in 0...x.data.match.length)
-				out += "	Dynamic hllr__"+Std.string(x.data.match.length-i-1)+" = __ret.back(); __ret.pop_back();\n";
-				out += "	Dynamic retval;\n";
+				for(i in 0...x.data.match.length) {
+					var name = "hllr__"+Std.string(x.data.match.length-i-1);
+					var sym = x.data.match[x.data.match.length-i-1];
+					if(sym.isTerminal) out += "Dynamic "+name+" = __ret.back(); __ret.pop_back();\n";
+					else out += proctype(cast(sym,NonTerminal).type)+" "+name+" = "+proctype(cast(sym,NonTerminal).type)+"(__ret.back()); __ret.pop_back();\n";
+				}
+				out += "	"+proctype(x.data.nt.type)+" retval;\n";
 				out += procattr(x.data.attr,x.data.match)+"\n";
 				out += "	__ret.push_back(retval);\n";
 				}
@@ -744,7 +749,7 @@ class Main {
 			out += "static const int entry_state = "+(entry_state.id)+";\n";
 			
 			out += "ParserResult::ParserResult() {}\n";
-			out += "ParserResult::ParserResult(std::string& file_name, const Dynamic& data) {\n";
+			out += "ParserResult::ParserResult(std::string& file_name, const "+starttype+"& data) {\n";
 			out += "	this->file_name = file_name;\n";
 			out += "	this->data = data;\n";
 			out += "}\n";
@@ -752,10 +757,10 @@ class Main {
 			out += "size_t Parser::run() {\n";
 	
 			var pars = File.getContent(epath+"/scripts/hllr_parser_c++");
-			pars = (~/TOKEN/).replace(pars,haxenew_token);
+			pars = (~/TOKEN/g).replace(pars,haxenew_token);
+			pars = (~/AST/g).replace(pars,starttype);
 			out += pars;
 
-//			out += File.getContent(epath+"/scripts/hllr_parser_c++");
 			out += "	return 0;\n";
 			out += "}\n";
 			
