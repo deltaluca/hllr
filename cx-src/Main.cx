@@ -617,6 +617,8 @@ class Main {
 			out += "#include <iostream>\n";
 			out += "#include <caxe_util.hpp>\n";
 			out += "#include <"+hlex+".hpp>\n";
+//			out += "#include <"+tockincl+">\n";
+			out += "#include <token.hpp>\n";
 			
 			out += "struct ParserResult {\n";
 			out += "	std::string file_name;\n";
@@ -627,13 +629,13 @@ class Main {
 			out += "std::ostream& operator<<(std::ostream&, const ParserResult&);\n";
 			
 			out += "class Parser : public Thread {\n";
-			out += "	ref<tsDeque<ptr<TOKEN> > > tokens;\n";
+			out += "	ref<tsDeque<ptr<"+haxenew_token+"> > > tokens;\n";
 			out += "	ref<tsDeque<ParserResult> > results;\n";
 			out += "	size_t run();\n";
 			
 			out += "public:\n";
 			out += "	Parser();\n";
-			out += "	void init(tsDeque<ptr<TOKEN> >& tokens, tsDeque<ParserResult>& results);\n";
+			out += "	void init(tsDeque<ptr<"+haxenew_token+"> >& tokens, tsDeque<ParserResult>& results);\n";
 			out += "};\n";
 			
 			var file = File.write(args[1]+".hpp", false);
@@ -702,9 +704,9 @@ class Main {
 					
 					var sym = attr.substr(i,dcnt);
 					
-					if(match[Std.parseInt(sym)].isTerminal)
-						ret.add("(ptr<TOKEN>(hllr__"+sym+")->data)");
-					else
+//					if(match[Std.parseInt(sym)].isTerminal)
+//						ret.add("(ptr<TOKEN>(hllr__"+sym+")->data)");
+//					else
 						ret.add("hllr__"+sym);
 					
 					i += dcnt;
@@ -748,13 +750,18 @@ class Main {
 			out += "}\n";
 			
 			out += "size_t Parser::run() {\n";
-			out += File.getContent(epath+"/scripts/hllr_parser_c++");
+	
+			var pars = File.getContent(epath+"/scripts/hllr_parser_c++");
+			pars = (~/TOKEN/).replace(pars,haxenew_token);
+			out += pars;
+
+//			out += File.getContent(epath+"/scripts/hllr_parser_c++");
 			out += "	return 0;\n";
 			out += "}\n";
 			
 			out += "Parser::Parser() {}\n";
-			out += "void Parser::init(tsDeque<ptr<TOKEN> >& tokens, tsDeque<ParserResult>& results) {\n";
-			out += "	this->tokens = ref<tsDeque<ptr<TOKEN> > > (tokens);\n";
+			out += "void Parser::init(tsDeque<ptr<"+haxenew_token+"> >& tokens, tsDeque<ParserResult>& results) {\n";
+			out += "	this->tokens = ref<tsDeque<ptr<"+haxenew_token+"> > > (tokens);\n";
 			out += "	this->results = ref<tsDeque<ParserResult> >(results);\n";
 			out += "}\n";
 			

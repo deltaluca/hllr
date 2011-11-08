@@ -2,27 +2,28 @@ std::vector<int> stack;
 std::vector<Dynamic> ret;
 
 ptr<TOKEN> cur = tokens->pop();
-if(cur->id==-3) return 0;
+if(isTOKEOS(cur)) return 0;
 
-std::string fname = cur->data.cast<std::string>();
+std::string fname = TOKSOF_data(cur);
 
 cur = tokens->pop();
 int cstate = entry_state;
-while(cur->id!=-3) {
-	int action = actions[cstate][cur->id+2];
+//while(cur->id!=-3) {
+while(!isTOKEOS(cur)) {
+	int action = actions[cstate][isTOKEOF(cur) ? 0 : INDEX(cur)+2];
 	switch(action&3) {
 		case 0: //error
 			results->push(ParserResult(fname,Dynamic::null));
 			
 			//skip to end of file, or end of process token.
-			while(cur->id>=-1) cur = tokens->pop();
+			while(!isTOKEOF(cur)) cur = tokens->pop();
 			ret.clear();
 			
 			stack.clear();
 			cstate = entry_state;
 			cur = tokens->pop();
-			if(cur->id!=-3) {
-				fname = *(ptr<std::string>(cur->data));
+			if(!isTOKEOS(cur)) {
+				fname = TOKSOF_data(cur);
 				cur = tokens->pop();
 			}
 
@@ -35,8 +36,8 @@ while(cur->id!=-3) {
 			stack.clear();
 			cstate = entry_state;
 			cur = tokens->pop();
-			if(cur->id!=-3) {
-				fname = *(ptr<std::string>(cur->data));
+			if(!isTOKEOS(cur)) {
+				fname = TOKSOF_data(cur);
 				cur = tokens->pop();
 			}
 			

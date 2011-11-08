@@ -1,6 +1,5 @@
 package ;
 
-
 	enum Token {
 		tIdent(x:String);
 		tToken;
@@ -15,10 +14,8 @@ package ;
 	class TokenUtils {
 		public static inline function index(x:Token) return Type.enumIndex(x)
 	}
-
 class HLex {
-		static inline var entry_state:Int = 7;
-
+	static inline var entry_state:Int = 7;
 	static var transitions:Array<Array<Array<Int>>> = null;
 	public static function init() {
 		if(transitions!=null) return;
@@ -127,9 +124,7 @@ cur.push([116,116,11]);
 cur.push([123,123,4]);
 transitions.push(cur);
 }
-
         static var accepting = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,true,true,true,true,true,true,true,true,true];
-
 	public static function lexify(input:String):Array<Token> {
 		init();
 var ret = new Array<Token>();
@@ -228,10 +223,10 @@ if(errstr!=null) {
 
 return ret;
 }
-	static inline function errtok(hxl_match:String) {
+	static inline function errtok(hxl_match:String):Token {
 		return null;
 	}
-	static function tokenof(id:Int, hxl_match:String) {
+	static function tokenof(id:Int, hxl_match:String):Token {
 		switch(id) {
 			default: return null;
             case 17:
