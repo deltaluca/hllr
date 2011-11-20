@@ -12,6 +12,7 @@ import HLex;
 import HLlr;
 
 import scx.Textual;
+import scx.Match;
 
 class Main {
 	static function main() {
@@ -466,56 +467,93 @@ class Main {
 		
 			out += File.getContent(epath+"/scripts/hllr_extra");
 
+			out += "class ActionRule {\n";
+			out += "	public var from:Int; public var to:Int; public var rel:Bool; public var act:Action;\n";
+			out += "	public function new(from:Int,act:Action,?rel:Bool=false,?to:Int=-1) {\n";
+			out += "		this.from = from; this.act = act; this.rel = rel; if(to==-1) this.to = from else this.to = to;\n";
+			out += "	}\n";
+			out += "}\n";
+
 			out += "class HLlr {\n";
 			out += "	public static var errors:Array<String>;\n";
 			out += "\n";
-			out += "	static var actions:Array<Array<{from:Int,to:Int,act:Action}>>;\n";
+			out += "	static var actions:Array<Array<ActionRule>>;\n";
 			out += "	static var rules:Array<{cb:Array<Dynamic>->Void,sym:Int,cnt:Int}>;\n";
 			out += "	static function init() {\n";
 			out += "		if(actions!=null) return;\n";
-			out += "		actions = new Array<Array<{from:Int,to:Int,act:Action}>>();\n";
+			out += "		actions = new Array<Array<ActionRule>>();\n";
 			for(i in actions) {
 				var any = false;
 				for(j in i) { switch(j) { case aE: default: any = true; break; } }
-				if(!any) {
+				if(!any || i.length==0) {
 			out += "		/* Error action only */ actions.push(null);\n";
 					continue;
 				}
 			out += "		var ret = [];\n";
 				var pre:{from:Int,to:Int,act:SAction} = null;
 				var cur = 0;
+				var prerel = false;
+				var preext = false;
 				for(j in i) {
-					var ext = false;
-					switch(j) {
-						case aE:     if(pre != null && switch(pre.act) { case aE:      true;    default: false; }) ext = true;
-						case aA:     if(pre != null && switch(pre.act) { case aA:      true;    default: false; }) ext = true;
-						case aS(id): if(pre != null && switch(pre.act) { case aS(id2): id==id2; default: false; }) ext = true;
-						case aR(id): if(pre != null && switch(pre.act) { case aR(id2): id==id2; default: false; }) ext = true;
-						case aG(id): if(pre != null && switch(pre.act) { case aG(id2): id==id2; default: false; }) ext = true;
-					}
-					if(ext) pre.to++;
-					else {
+					var ext = pre != null &&
+					(switch(j) {
+						case aE:     if(switch(pre.act) { case aE:      true;    default: false; }) true;
+						case aA:     if(switch(pre.act) { case aA:      true;    default: false; }) true;
+						case aS(id): if(switch(pre.act) { case aS(id2): id==id2; default: false; }) true;
+						case aR(id): if(switch(pre.act) { case aR(id2): id==id2; default: false; }) true;
+						case aG(id): if(switch(pre.act) { case aG(id2): id==id2; default: false; }) true;
+					});
+					var rel = !ext && pre != null &&
+					(switch(j) {
+						case aS(id): if(switch(pre.act) { case aS(id2): id==id2+1+(pre.to-pre.from); default: false; }) true;
+						case aR(id): if(switch(pre.act) { case aR(id2): id==id2+1+(pre.to-pre.from); default: false; }) true;
+						case aG(id): if(switch(pre.act) { case aG(id2): id==id2+1+(pre.to-pre.from); default: false; }) true;
+						default: false;
+					});
+					if((ext&&!prerel) || (rel&&!preext)) {
+						pre.to++;
+						if(ext) preext = true;
+						if(rel) prerel = true;
+					}else {
 						if(pre!=null && !(switch(pre.act) { case aE: true; default: false;})) {
-			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
+							var acts = switch(pre.act) {
+//			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
 								case aE: "aE";
 								case aA: "aA";
 								case aS(id): "aS("+Std.string(id)+")";
 								case aR(id): "aR("+Std.string(id)+")";
 								case aG(id): "aG("+Std.string(id)+")";
-							})+"});\n";
+							};
+							if(pre.from==pre.to) out += "		ret.push(new ActionRule("+pre.from+","+acts+"));\n";
+							else {
+								out += "		ret.push(new ActionRule("+pre.from+","+acts;
+								if(prerel) out += ",true";
+								out += ","+pre.to+"));\n";
+							}
+//							})+",rel:"+prerel+"});\n";
 						}
 						pre = {from:cur,to:cur,act:j};
+						prerel = false;
+						preext = false;
 					}
 					cur++;
 				}
 				if(pre!=null && !(switch(pre.act) { case aE: true; default: false;})) {
-			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
+					var acts = switch(pre.act) {
+//			out += "		ret.push({from:"+pre.from+",to:"+pre.to+",act:"+(switch(pre.act) {
 						case aE: "aE";
 						case aA: "aA";
 						case aS(id): "aS("+Std.string(id)+")";
 						case aR(id): "aR("+Std.string(id)+")";
 						case aG(id): "aG("+Std.string(id)+")";
-					})+"});\n";
+					};
+					if(pre.from==pre.to) out += "		ret.push(new ActionRule("+pre.from+","+acts+"));\n";
+					else {
+						out += "		ret.push(new ActionRule("+pre.from+","+acts;
+						if(prerel) out += ",true";
+						out += ","+pre.to+"));\n";
+					}
+//					})+",rel:"+prerel+"});\n";
 				}
 			out += "		actions.push(ret);\n";
 			}
@@ -530,7 +568,16 @@ class Main {
 			out += "		if(acts==null) return aE;\n";
 			out += "\n";
 			out += "		for(x in acts) {\n";
-			out += "			if(x.from <= ind && ind <= x.to) return x.act;\n";
+			out += "			if(x.from <= ind && ind <= x.to) {\n";//Dreturn x.act;\n";
+			out += "				if(x.rel) {\n";
+			out += "					return switch(x.act) {\n";
+			out += "						case aR(z): aR(z+ind-x.from);\n";
+			out += "						case aS(z): aS(z+ind-x.from);\n";
+			out += "						case aG(z): aG(z+ind-x.from);\n";
+			out += "						default: throw \"eep\";\n";
+			out += "					};\n";
+			out += "				} else return x.act;\n";
+			out += "			}\n";
 			out += "			else if(x.from > ind) return aE;\n";
 			out += "		}\n";
 			out += "		return aE;\n";
